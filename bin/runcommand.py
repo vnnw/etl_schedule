@@ -115,6 +115,7 @@ class RunCommand(object):
                             code = self.run_single_command(command)
                             if code != 0:
                                 return 1
+            return 0
         else:
             return 0
 

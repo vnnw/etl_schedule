@@ -5,11 +5,13 @@ from dboption import DBOption
 import sys
 import getopt
 import os
+from configutil import ConfigUtil
 
 
 class ETLUtil(object):
     def __init__(self):
         self.dboption = DBOption()
+        self.config = ConfigUtil
         self.time_format = "时间触发格式: Job名称,time,触发天(每天0),触发小时,触发分钟,触发周期(day|month),负责人,脚本位置"
         self.depdency_format = "依赖触发格式:Job名称,dependency,依赖Job(多个用空格分隔),触发Job,负责人,脚本位置"
 
@@ -39,7 +41,8 @@ class ETLUtil(object):
                 trigger_type = line_array[1]
                 man = line_array[len(line_array) - 2]
                 script = line_array[len(line_array) - 1].strip()
-                self.check_script_path(script)
+                script_path = self.config.get("job.script.path") + "/" + script
+                self.check_script_path(script_path)
                 if len(line_array) == 8:
                     day = line_array[2]
                     hour = line_array[3]
