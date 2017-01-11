@@ -25,6 +25,13 @@ class RunCommand(object):
         self.config = ConfigUtil()
         self.dboption = DBOption()
 
+    def get_python_bin(self):
+        python_path = self.config.get("python.home")
+        if python_path is None or len(python_path) == 0:
+             raise Exception("can't find python.home")
+        python_bin = python_path + "/bin/python"
+        return python_bin
+
     # run command
     def run_command(self, job_name):
         try:
@@ -42,13 +49,8 @@ class RunCommand(object):
 
             extend = os.path.splitext(job_script)[1]
 
-            python_path = self.config.get("python.home")
-            if python_path is None or len(python_path) == 0:
-                raise Exception("can't find python.home")
-            python_bin = python_path + "/bin/python"
-
             if extend == ".py":
-                child = subprocess.Popen([python_bin, job_script, "-job", job_name],
+                child = subprocess.Popen([self.get_python_bin(), job_script, "-job", job_name],
                                          stdout=None,
                                          stderr=subprocess.STDOUT,
                                          shell=False)
@@ -70,7 +72,7 @@ class RunCommand(object):
                     return code
 
             elif extend == ".yml":
-                return self.run_yaml(python_bin,project_path, job_script)
+                return self.run_yaml(job_script)
 
             else:
                 raise Exception("当前只支持 python , shell , yaml 脚本")
@@ -87,7 +89,7 @@ class RunCommand(object):
         code = child.wait()
         return code
 
-    def run_yaml(self,python_bin,yaml_file):
+    def run_yaml(self,yaml_file):
         yaml_sql_path = project_path + "/job/sql"
         yaml_parser = YamlParser()
         yaml_file = open(yaml_file, 'r')
@@ -107,7 +109,7 @@ class RunCommand(object):
                         if code != 0:
                             return 1
                 if step_type == 'export':
-                    command_list = yaml_parser.parse_export(python_bin, project_path, step)
+                    command_list = yaml_parser.parse_export(self.get_python_bin(), project_path, step)
                     if command_list and len(command_list) > 0:
                         for command in command_list:
                             code = self.run_single_command(command)
