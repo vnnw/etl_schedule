@@ -70,7 +70,7 @@ class RunCommand(object):
                     return code
 
             elif extend == ".yml":
-                return self.run_yaml(project_path, job_script)
+                return self.run_yaml(python_bin,project_path, job_script)
 
             else:
                 raise Exception("当前只支持 python , shell , yaml 脚本")
@@ -87,7 +87,7 @@ class RunCommand(object):
         code = child.wait()
         return code
 
-    def run_yaml(self,yaml_file ):
+    def run_yaml(self,python_bin,yaml_file):
         yaml_sql_path = project_path + "/job/sql"
         yaml_parser = YamlParser()
         yaml_file = open(yaml_file, 'r')
@@ -107,7 +107,7 @@ class RunCommand(object):
                         if code != 0:
                             return 1
                 if step_type == 'export':
-                    command_list = yaml_parser.parse_export(step)
+                    command_list = yaml_parser.parse_export(python_bin, project_path, step)
                     if command_list and len(command_list) > 0:
                         for command in command_list:
                             code = self.run_single_command(command)
