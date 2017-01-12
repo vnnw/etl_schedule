@@ -336,7 +336,6 @@ def runCheck(options):
     mysqlCursor = mysqlConnection.cursor(MySQLdb.cursors.DictCursor)
     mysqlCursor.execute(countMySQL)
     r1 = mysqlCursor.fetchone()
-    print r1
     mysqlCount = r1['mcount']
     hiveConnection = getHiveConnection(hiveDB)
     countHive = "select count(1) as hcount from " + options.hive_db
