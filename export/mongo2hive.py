@@ -82,7 +82,7 @@ def parse_mongo(mongo_db_collection):
 def build_json_file(options, args):
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
 
-    (mongo_db, collection) = parse_mongo(options.mongo_db.split("."))
+    (mongo_db, collection) = parse_mongo(options.mongo_db)
 
     partition = options.partition
 
