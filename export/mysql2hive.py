@@ -40,7 +40,6 @@ def getMySQLConfig(mysqlDB):
     dbConfig["password"] = configUtil.get(prefix + ".password")
     dbConfig["host"] = configUtil.get(prefix + ".host")
     dbConfig["port"] = configUtil.get(prefix + ".port")
-    print dbConfig
     return dbConfig
 
 
