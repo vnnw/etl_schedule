@@ -3,6 +3,7 @@
 
 import os
 import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import json
@@ -43,7 +44,12 @@ def getMySQLConfig(mysqlDB):
     return dbConfig
 
 
-def mysqlConnection(mysqlDB, mysqlTable):
+'''
+ 获取 mysql 连接
+'''
+
+
+def getMySQLConnection(mysqlDB, mysqlTable):
     mysqlConfig = getMySQLConfig(mysqlDB)
     host = mysqlConfig["host"]
     username = mysqlConfig["username"]
@@ -77,10 +83,15 @@ def readBaseJson():
     return jsonData
 
 
+'''
+获取MySQL表字段
+'''
+
+
 # List[(columnName,columnType,comment)]
 def getMySQLTableColumns(columns, excludeColumns, mysqlDB, mysqlTable):
     columnList = []
-    connection = mysqlConnection(mysqlDB, mysqlTable)
+    connection = getMySQLConnection(mysqlDB, mysqlTable)
     command = """show full columns from """ + mysqlTable
     cursor = connection.cursor()
     cursor.execute(command)
@@ -114,7 +125,9 @@ def getMySQLTableColumns(columns, excludeColumns, mysqlDB, mysqlTable):
     return columnList
 
 
-def getHiveConnection(host, port, db):
+def getHiveConnection(db):
+    host = configUtil.get("hive.host")
+    port = configUtil.get("hive.port")
     connection = pyhs2.connect(host=host,
                                port=int(port),
                                authMechanism="PLAIN",
@@ -124,10 +137,13 @@ def getHiveConnection(host, port, db):
     return connection
 
 
-def createHiveTable(hiveDB, hiveTable, columnList, partition, where):
-    host = configUtil.get("hive.host")
-    port = configUtil.get("hive.port")
-    connection = getHiveConnection(host, int(port), hiveDB)
+'''
+创建hive 表
+'''
+
+
+def createHiveTable(hiveDB, hiveTable, columnList, partition):
+    connection = getHiveConnection(hiveDB)
     cursor = connection.cursor()
     cursor.execute("use " + hiveDB)
     cursor.execute("show tables")
@@ -136,7 +152,7 @@ def createHiveTable(hiveDB, hiveTable, columnList, partition, where):
     for table in result:
         tables.add(table[0])
 
-    if partition is None and where is None and hiveTable in tables:
+    if partition is None and hiveTable in tables:  # 如果有partition 不能删除表,应该增加partition
         cursor.execute("drop table " + hiveTable)
         tables.remove(hiveTable)
 
@@ -165,9 +181,14 @@ def createHiveTable(hiveDB, hiveTable, columnList, partition, where):
         createStr += " STORED AS ORC"
         print(createStr)
         cursor.execute(createStr)
-        if partitionKey is not None:
+        if partitionKey is not None:  # 添加新的分区
             cursor.execute("alter table " + hiveTable + " add partition(" + partitionKey + "='" + partitionValue + "')")
     connection.close()
+
+
+'''
+ MySQL -> Hive 字段类型对应
+'''
 
 
 def changeType(ctype):
@@ -189,25 +210,34 @@ def changeType(ctype):
     return ctype
 
 
-def buildJsonFile(options, args):
-    jsonData = readBaseJson()
-    partition = options.partition
-    if partition is not None:
-        partition = partition.strip()
-    columns = options.columns
-    excludeColumns = options.exclude_columns
-
-    where = options.where
-    if where is not None:
-        where = where.strip()
-
-    mysqlDBTable = options.mysql_db.split(".")
+def parseMySQLDB(mysqlDBTable):
+    mysqlDBTable = mysqlDBTable.split(".")
     mysqlDB = mysqlDBTable[0]
     mysqlTable = mysqlDBTable[1]
-    hiveDBTable = options.hive_db.split(".")
+    return (mysqlDB, mysqlTable)
+
+
+def parseHiveDB(hiveDBTable):
+    hiveDBTable = hiveDBTable.split(".")
     hiveDB = hiveDBTable[0]
     hiveTable = hiveDBTable[1]
+    return (hiveDB, hiveTable)
 
+
+'''
+处理 MySQL 的列,拼接成SQL
+'''
+
+
+def processMySQL(options):
+    columns = options.columns  # 包含
+    excludeColumns = options.exclude_columns  # 排除
+
+    where = options.where
+    if where is not None:  # where 条件
+        where = where.strip()
+
+    (mysqlDB, mysqlTable) = parseMySQLDB(options.mysql_db)
     columnList = getMySQLTableColumns(columns, excludeColumns, mysqlDB, mysqlTable)
     columnNameList = []
     columnNameTypeList = []
@@ -218,13 +248,32 @@ def buildJsonFile(options, args):
         if "(" in ctype:
             ctype = ctype[:ctype.index("(")]
         ctype = changeType(ctype)
-        columnNameTypeList.append({"name": name, "type": ctype})
-        formatColumnList.append((name, ctype, comment))
-    createHiveTable(hiveDB, hiveTable, formatColumnList, partition, where)
-    mysqlConfigDict = getMySQLConfig(mysqlDB)
+        columnNameTypeList.append({"name": name, "type": ctype})  # datax json 的格式
+        formatColumnList.append((name, ctype, comment))  # 用来创建hive表的字段
     querySql = "select " + ", ".join(columnNameList) + " from  " + mysqlTable + " where 1=1 "
     if where is not None and len(where) > 0:
         querySql += " and " + where
+    return (formatColumnList, columnNameTypeList, querySql)
+
+
+def buildJsonFile(options, args):
+    jsonData = readBaseJson()
+
+    partition = options.partition
+    if partition is not None:
+        partition = partition.strip()
+
+
+    (hiveDB, hiveTable) = parseHiveDB(options.hive_db)
+
+    (mysqlDB, mysqlTable) = parseMySQLDB(options.mysql_db)
+
+    mysqlConfigDict = getMySQLConfig(mysqlDB)
+
+    (formatColumnList, columnNameTypeList, querySql) = processMySQL(options)
+
+    createHiveTable(hiveDB, hiveTable, formatColumnList, partition)
+
     readerParameterDict = {
         "connection": [{
             "querySql": [querySql],
@@ -270,8 +319,38 @@ def runDatax(jsonFile):
     print datax
     child_process = subprocess.Popen("python " + datax, shell=True)
     (stdout, stderr) = child_process.communicate()
-    sys.exit(child_process.returncode)
+    return child_process.returncode
 
+
+'''
+检查导入的数据是否完整,总的记录条数差距 %10
+'''
+
+
+def runCheck(options):
+    (formatColumnList, columnNameTypeList, querySql) = processMySQL(options)
+    countMySQL = "select count(1) as mcount from (" + querySql + ") t1"
+    (hiveDB, hiveTable) = parseHiveDB(options.hive_db)
+    (mysqlDB, mysqlTable) = parseMySQLDB(options.mysql_db)
+    mysqlConnection = getMySQLConnection(mysqlDB,mysqlTable)
+    mysqlCursor = mysqlConnection.cursor(MySQLdb.cursors.DictCursor)
+    mysqlCursor.execute(countMySQL)
+    r1 = mysqlCursor.fetchone()
+    print r1
+    mysqlCount = r1['mcount']
+    hiveConnection = getHiveConnection(hiveDB)
+    countHive = "select count(1) as hcount from " + options.hive_db
+    hiveCursor = hiveConnection.cursor()
+    hiveCursor.execute(countHive)
+    r2 = hiveCursor.fetchone()
+    hiveCount = r2[0]
+    diffCount = abs(hiveCount - mysqlCount)
+    threshold = diffCount * 100 / hiveCount
+    if threshold > 10:
+        print "导出的数据总数有差异 mysql:" + str(mysqlCount) + " hive:" + str(hiveCount)
+        return 1
+    else:
+        return 0
 
 if __name__ == "__main__":
     reload(sys)
@@ -296,4 +375,6 @@ if __name__ == "__main__":
             print("require hive database.table")
             sys.exit(-1)
         jsonFile = buildJsonFile(options, args)
-        runDatax(jsonFile)
+        code = runDatax(jsonFile)
+        complete = runCheck(options)
+        sys.exit(complete)
