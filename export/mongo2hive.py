@@ -114,7 +114,9 @@ def build_json_file(options, args):
     for column in columns:
         hive_columns.append({"name": column["name"], "type": change_type(column["type"])})
 
-    address = [config_util.get("mongo." + mongo_db + ".address")]
+    mongo_host = config_util.get("mongo." + mongo_db + ".host")
+    mongo_port = config_util.get("mongo." + mongo_db + ".port")
+    address = [mongo_host + ":" + mongo_port]
     yaml_dict["job"]["content"][0]["reader"]["parameter"]["address"] = address
 
     yaml_dict["job"]["content"][0]["writer"] = {}  # set {}
