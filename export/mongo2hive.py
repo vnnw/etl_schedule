@@ -133,7 +133,7 @@ def build_json_file(options, args):
     }
     yaml_dict["job"]["content"][0]["writer"] = writer_dict
     json_str = dict2json(yaml_dict)
-    (filepath, tempfilename) = os.path.split(yaml_dict)
+    (filepath, tempfilename) = os.path.split(yaml_file)
     (shotname, extension) = os.path.splitext(tempfilename)
     datax_json_base_path = config_util.get("datax.json.path")
     if not os.path.exists(datax_json_base_path):
@@ -174,7 +174,7 @@ def get_hive_connection(db):
 
 def run_check(options):
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
-    (mongo_db, collection) = parse_mongo(options.mongo_db.split("."))
+    (mongo_db, collection) = parse_mongo(options.mongo_db)
     mongo_connection = get_mongo_connection(mongo_db)
     connection_db = mongo_connection[mongo_db]
     mongo_collection = connection_db[collection]
