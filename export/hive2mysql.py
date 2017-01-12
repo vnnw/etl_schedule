@@ -10,9 +10,9 @@ import random
 import pyhs2
 from bin.configutil import ConfigUtil
 
-configUtil = ConfigUtil()
+config_util = ConfigUtil()
 
-def getOptionParser():
+def get_option_parser():
     usage = "usage: %prog [options] arg1 arg2"
 
     parser = OptionParser(usage=usage)
@@ -33,8 +33,8 @@ run hql > data
 
 
 def hive_connection(db):
-    host = configUtil.get("hive.host")
-    port = configUtil.get("hive.port")
+    host = config_util.get("hive.host")
+    port = config_util.get("hive.port")
     connection = pyhs2.connect(host=host,
                                port=int(port),
                                authMechanism="PLAIN",
@@ -44,7 +44,7 @@ def hive_connection(db):
     return connection
 
 
-def runHsql(table):
+def run_hsql(table):
     try:
         db = table.split(".")[0]
         connection = hive_connection(db)
@@ -53,7 +53,7 @@ def runHsql(table):
         hive_sql = "select * from " + table
         mills = datetime.datetime.now().microsecond
         rand = random.randint(1, 100)
-        tmpdatadir = configUtil.get("tmp.dir") + "/hdatas"
+        tmpdatadir = config_util.get("tmp.dir") + "/hdatas"
         tmpdata = tmpdatadir + "/" + str(mills) + "-" + str(rand) + ".data"
         write_handler = open(tmpdata, 'w')
         cursor = connection.cursor()
@@ -77,31 +77,31 @@ def runHsql(table):
         return (-1, None)
 
 
-def getMySQLConfig(mysqlDB):
-    prefix = "mysql" + "." + mysqlDB
+def get_mysql_config(mysql_db):
+    prefix = "mysql" + "." + mysql_db
     dbConfig = {}
-    dbConfig["username"] = configUtil.get(prefix + ".username")
-    dbConfig["password"] = configUtil.get(prefix + ".password")
-    dbConfig["host"] = configUtil.get(prefix + ".host")
-    dbConfig["port"] = configUtil.get(prefix + ".port")
+    dbConfig["username"] = config_util.get(prefix + ".username")
+    dbConfig["password"] = config_util.get(prefix + ".password")
+    dbConfig["host"] = config_util.get(prefix + ".host")
+    dbConfig["port"] = config_util.get(prefix + ".port")
     return dbConfig
 
 
-def getUserNamePassword():
-    mysqlDBTable = options.mysql_db.split(".")
-    mysqlDB = mysqlDBTable[0]
-    mysqlTable = mysqlDBTable[1]
-    dbInfo = getMySQLConfig(mysqlDB)
-    return (dbInfo["username"], dbInfo["password"], dbInfo["host"])
+def get_username_password():
+    mysql_db_table = options.mysql_db.split(".")
+    mysql_db = mysql_db_table[0]
+    mysql_table = mysql_db_table[1]
+    db_info = get_mysql_config(mysql_db)
+    return (db_info["username"], db_info["password"], db_info["host"])
 
 
-def runMySQLCommand(command):
-    (username, password, host) = getUserNamePassword()
-    mysqlPath = configUtil.get("mysql.path")
-    runCommand = mysqlPath + "/bin/mysql -u" + username + " -p" + password + " -h" + host + " -e \"" + command + "\""
-    print("runCommand:" + str(runCommand))
+def run_mysql_command(command):
+    (username, password, host) = get_username_password()
+    mysql_path = config_util.get("mysql.path")
+    run_command = mysql_path + "/bin/mysql -u" + username + " -p" + password + " -h" + host + " -e \"" + command + "\""
+    print("run_command:" + str(run_command))
     try:
-        code = os.system(runCommand)
+        code = os.system(run_command)
         return code
     except Exception, e:
         print e
@@ -113,15 +113,15 @@ load data to mysql
 '''
 
 
-def loadMySQL(db, columns, tmpdata):
+def load_mysql(db, columns, tmpdata):
     command = "load data test infile '" + tmpdata + "' INTO TABLE " + db + " fields terminated by '\t' (" + columns + ")"
-    code = runMySQLCommand(command)
+    code = run_mysql_command(command)
     os.remove(tmpdata)  # remove data file
     return code
 
 
-def runSql(sql):
-    code = runMySQLCommand(sql)
+def run_sql(sql):
+    code = run_mysql_command(sql)
     return code
 
 
@@ -139,14 +139,14 @@ def run(options, args):
     db = options.mysql_db.strip()
     columns = options.mysql_columns.strip()
     try:
-        (code, tmpdata) = runHsql(hive_table)
+        (code, tmpdata) = run_hsql(hive_table)
         if code == 0:
             if msql is not None and len(msql) > 0:
-                mcode = runSql(msql)
+                mcode = run_sql(msql)
                 if mcode != 0:
                     print("run sql error")
                     return -1
-            lcode = loadMySQL(db, columns, tmpdata)
+            lcode = load_mysql(db, columns, tmpdata)
             if lcode != 0:
                 print("load data error")
                 return -1
@@ -166,7 +166,7 @@ if __name__ == "__main__":
 
     # fakeArgs = ["-s","select * from t_test",'-t',"db_stg.driver_quiz_score"]
 
-    optParser = getOptionParser()
+    optParser = get_option_parser()
 
     options, args = optParser.parse_args(sys.argv[1:])
 
@@ -175,14 +175,14 @@ if __name__ == "__main__":
     if options.hive_table is None:
         print("require hive table")
         optParser.print_help()
-        sys.exit(-1)
+        sys.exit(1)
     if options.mysql_db is None:
         print("require mysql db")
         optParser.print_help()
-        sys.exit(-1)
+        sys.exit(1)
     if options.mysql_columns is None:
         print("require mysql columns")
         optParser.print_help()
-        sys.exit(-1)
+        sys.exit(1)
     code = run(options, args)
     sys.exit(code)

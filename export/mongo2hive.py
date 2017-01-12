@@ -4,17 +4,20 @@
 
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import json
 import subprocess
 import yaml
+import pymongo
+import pyhs2
 from bin.configutil import ConfigUtil
 
+config_util = ConfigUtil()
 
-configUtil = ConfigUtil()
 
-def getOptionParser():
+def get_option_parser():
     usage = "usage: %prog [options] arg1 arg2"
     parser = OptionParser(usage=usage)
     parser.add_option("-f", "--file", dest="yaml_file", action="store", type="string", help="require yaml path")
@@ -35,15 +38,15 @@ def dict2json(dict):
     return jsonStr
 
 
-def removeDir(dir_name):
+def remove_dir(dir_name):
     os.system("hadoop fs -rmr " + dir_name)
 
 
-def createDir(dir_name):
+def create_dir(dir_name):
     os.system("hadoop fs -mkdir -p " + dir_name)
 
 
-def changeType(ctype):
+def change_type(ctype):
     ctype = ctype.lower()
     if ctype in ("varchar", "char"):
         ctype = "string"
@@ -62,45 +65,59 @@ def changeType(ctype):
     return ctype
 
 
-def buildJsonFile(options, args):
-    yamlFile = options.yaml_file
-    hiveDBTable = options.hive_db.split(".")
-    hiveDB = hiveDBTable[0]
-    hiveTable = hiveDBTable[1]
-    mongoDBCollection = options.mongo_db.split(".")
-    mongoDB = mongoDBCollection[0]
-    collection = mongoDBCollection[1]
+def parse_hive_db(hive_db_table):
+    hive_db_table_array = hive_db_table.split(".")
+    hive_db = hive_db_table_array[0]
+    hive_table = hive_db_table_array[1]
+    return (hive_db, hive_table)
+
+
+def parse_mongo(mongo_db_collection):
+    mongo_db_collection_array = mongo_db_collection.split(".")
+    mongo_db = mongo_db_collection_array[0]
+    collection = mongo_db_collection_array[1]
+    return (mongo_db, collection)
+
+
+def build_json_file(options, args):
+    (hive_db, hive_table) = parse_hive_db(options.hive_db)
+
+    (mongo_db, collection) = parse_mongo(options.mongo_db.split("."))
+
     partition = options.partition
-    partitionKey = None
-    partitionValue = None
+
+    partition_key = None
+    partition_value = None
     if partition is not None:
-        partitionArray = partition.split("=")
-        partitionKey = partitionArray[0].strip()
-        partitionValue = partitionArray[1].strip()
-    defaultFS = configUtil.get("hdfs.uri")
-    hive_path = "/user/hive/warehouse/" + hiveDB + ".db/" + hiveTable
+        partition_array = partition.split("=")
+        partition_key = partition_array[0].strip()
+        partition_value = partition_array[1].strip()
+
+    defaultFS = config_util.get("hdfs.uri")
+    hive_path = "/user/hive/warehouse/" + hive_db + ".db/" + hive_table
     if partition is None:
-        removeDir(defaultFS + hive_path)
-        createDir(defaultFS + hive_path)
+        remove_dir(defaultFS + hive_path)
+        create_dir(defaultFS + hive_path)
     else:
-        hive_path = hive_path + "/" + partitionValue
+        hive_path = hive_path + "/" + partition_value
 
-    yamlPath = configUtil.get("yaml.path")
-    yamlDict = yaml2dict(yamlPath + "/" + yamlFile)
+    yaml_path = config_util.get("yaml.path")
+    yaml_file = options.yaml_file
+    yaml_dict = yaml2dict(yaml_path + "/" + yaml_file)
 
-    yamlDict["job"]["content"][0]["reader"]["parameter"]["dbName"] = mongoDB
-    yamlDict["job"]["content"][0]["reader"]["parameter"]["collectionName"] = collection
+    yaml_dict["job"]["content"][0]["reader"]["parameter"]["dbName"] = mongo_db
+    yaml_dict["job"]["content"][0]["reader"]["parameter"]["collectionName"] = collection
 
-    columns = yamlDict["job"]["content"][0]["reader"]["parameter"]["column"]
+    columns = yaml_dict["job"]["content"][0]["reader"]["parameter"]["column"]
 
     hive_columns = []
     for column in columns:
-        hive_columns.append({"name": column["name"], "type": changeType(column["type"])})
+        hive_columns.append({"name": column["name"], "type": change_type(column["type"])})
 
-    address = [configUtil.get("mongo." + mongoDB + ".address")]
-    yamlDict["job"]["content"][0]["reader"]["parameter"]["address"] = address
+    address = [config_util.get("mongo." + mongo_db + ".address")]
+    yaml_dict["job"]["content"][0]["reader"]["parameter"]["address"] = address
 
-    yamlDict["job"]["content"][0]["writer"] = {}  # set {}
+    yaml_dict["job"]["content"][0]["writer"] = {}  # set {}
 
     writer_dict = {
         "name": "hdfswriter",
@@ -108,32 +125,79 @@ def buildJsonFile(options, args):
             "defaultFS": defaultFS,
             "fileType": "orc",
             "path": hive_path,
-            "fileName": hiveTable,
+            "fileName": hive_table,
             "column": hive_columns,
             "writeMode": "append",
             "fieldDelimiter": "\u0001"
         }
     }
-    yamlDict["job"]["content"][0]["writer"] = writer_dict
-    json_str = dict2json(yamlDict)
-    (filepath, tempfilename) = os.path.split(yamlFile)
+    yaml_dict["job"]["content"][0]["writer"] = writer_dict
+    json_str = dict2json(yaml_dict)
+    (filepath, tempfilename) = os.path.split(yaml_dict)
     (shotname, extension) = os.path.splitext(tempfilename)
-    basePath = configUtil.get("datax.json.path")
-    if not os.path.exists(basePath):
-        os.makedirs(basePath)
-    path = basePath + "/" + shotname + ".json"
-    print path
-    baseFile = open(path, "w")
-    baseFile.write(json_str)
-    baseFile.close()
-    return path
+    datax_json_base_path = config_util.get("datax.json.path")
+    if not os.path.exists(datax_json_base_path):
+        os.makedirs(datax_json_base_path)
+    datax_json_path = datax_json_base_path + "/" + shotname + ".json"
+    print datax_json_path
+    datax_json_file_handler = open(datax_json_path, "w")
+    datax_json_file_handler.write(json_str)
+    datax_json_file_handler.close()
+    return datax_json_path
 
 
-def runDatax(jsonFile):
-    dataxpath = configUtil.get("datax.path")
-    child_process = subprocess.Popen("python " + dataxpath + " " + jsonFile, shell=True)
+def run_datax(json_file):
+    dataxpath = config_util.get("datax.path")
+    child_process = subprocess.Popen("python " + dataxpath + " " + json_file, shell=True)
     (stdout, stderr) = child_process.communicate()
-    sys.exit(child_process.returncode)
+    return child_process.returncode
+
+
+def get_mongo_connection(mongo_db):
+    host = config_util.get("mongo." + mongo_db + ".host")
+    port = config_util.get("mongo." + mongo_db + ".port")
+    connection = pymongo.MongoClient(host, int(port))
+    return connection
+
+
+def get_hive_connection(db):
+    host = config_util.get("hive.host")
+    port = config_util.get("hive.port")
+    connection = pyhs2.connect(host=host,
+                               port=int(port),
+                               authMechanism="PLAIN",
+                               user="hadoop",
+                               password="hadoop",
+                               database=db)
+    return connection
+
+
+def run_check(options):
+    (hive_db, hive_table) = parse_hive_db(options.hive_db)
+    (mongo_db, collection) = parse_mongo(options.mongo_db.split("."))
+    mongo_connection = get_mongo_connection(mongo_db)
+    connection_db = mongo_connection[mongo_db]
+    mongo_collection = connection_db[collection]
+    mongo_count = mongo_collection.find().count()
+    mongo_connection.close()
+    hive_connection = get_hive_connection(hive_db)
+    count_hive = "select count(1) as hcount from " + options.hive_db
+    partition = options.partition
+    if partition is not None and len(partition) > 0:
+        count_hive = count_hive + " where" + partition
+    hive_cursor = hive_connection.cursor()
+    hive_cursor.execute(count_hive)
+    r2 = hive_cursor.fetchone()
+    hive_count = r2[0]
+    hive_connection.close()
+    diff_count = abs(hive_count - mongo_count)
+    threshold = diff_count * 100 / hive_count
+    if threshold > 10:
+        print "导出的数据总数有差异 mongodb:" + str(mongo_count) + " hive:" + str(hive_count)
+        return 1
+    else:
+        print "导出数据总数 mongodb:" + str(mongo_count) + " hive:" + str(hive_count)
+        return 0
 
 
 if __name__ == "__main__":
@@ -145,7 +209,7 @@ if __name__ == "__main__":
     # fakeArgs = ["-f", yaml_file, '-t', "db_stg.driver_quiz_score"]
     # options, args = optParser.parse_args(fakeArgs)
 
-    optParser = getOptionParser()
+    optParser = get_option_parser()
     options, args = optParser.parse_args(sys.argv[1:])
 
     print options
@@ -156,12 +220,18 @@ if __name__ == "__main__":
     else:
         if options.yaml_file is None:
             print("require yaml file")
-            sys.exit(-1)
+            sys.exit(1)
         if options.hive_db is None:
             print("require hive database.table")
-            sys.exit(-1)
+            sys.exit(1)
         if options.mongo_db is None:
             print("require mongo database.collection")
-            sys.exit(-1)
-        jsonFile = buildJsonFile(options, args)
-        runDatax(jsonFile)
+            sys.exit(1)
+        json_file = build_json_file(options, args)
+        code = run_datax(json_file)
+        if code != 0:
+            print("datax load failed")
+            sys.exit(1)
+        else:
+            complete = run_check(options)
+            sys.exit(complete)

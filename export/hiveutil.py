@@ -134,10 +134,10 @@ class HiveUtil:
         except Exception, e:
             print(e)
             sys.stdout.flush()
-            return -1
+            return 1
 
     def check_run_code(self, code=-1):
         if code == 0:
             sys.exit(0)
         else:
-            sys.exit(-1)
+            sys.exit(1)
