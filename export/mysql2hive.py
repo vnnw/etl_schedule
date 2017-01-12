@@ -350,6 +350,7 @@ def runCheck(options):
         print "导出的数据总数有差异 mysql:" + str(mysqlCount) + " hive:" + str(hiveCount)
         return 1
     else:
+        print "导出数据总数 mysql:" + str(mysqlCount) + " hive:" + str(hiveCount)
         return 0
 
 if __name__ == "__main__":
