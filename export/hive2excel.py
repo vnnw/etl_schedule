@@ -173,7 +173,7 @@ def write2excel(workbook, sheet_name, head, data):
 '''
 
 
-def send_email(subject, content, excel_path, receivers):
+def send_email(subject, content, excel_path, receivers_array):
     contype = 'application/octet-stream'
     maintype, subtype = contype.split('/', 1)
     server = smtplib.SMTP("smtp.263.net")
@@ -195,10 +195,10 @@ def send_email(subject, content, excel_path, receivers):
     main_msg["Accept-Language"] = "zh-CN"
     main_msg["Accept-Charset"] = "utf-8"
     main_msg['From'] = "noreply@yunniao.me"
-    main_msg['To'] = ",".join(receivers)
+    main_msg['To'] = ",".join(receivers_array)
     main_msg['Subject'] = subject
-    fullText = main_msg.as_string()
-    server.sendmail("noreply@yunniao.me", receivers.split(","), fullText)
+    full_text = main_msg.as_string()
+    server.sendmail("noreply@yunniao.me", receivers_array, full_text)
     server.quit()
 
 
@@ -252,9 +252,9 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     try:
-        (name, tables, receivers) = split_args(options, args)
+        (name, tables, receivers_array) = split_args(options, args)
         excel_path = query_table(name, tables)
-        send_email(options.subject.strip(), options.content.strip(), excel_path, receivers)
+        send_email(options.subject.strip(), options.content.strip(), excel_path, receivers_array)
 
     except Exception, e:
         print traceback.format_exc()
