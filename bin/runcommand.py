@@ -40,7 +40,7 @@ class RunCommand(object):
 
             job_script = etl_job["job_script"]
 
-            job_script = self.config.get("job.script.path") + "/" + job_script
+            job_script = self.config.get("job.script.path") + "/script/" + job_script
 
             print(" 需要运行的Job名称:" + job_name + " 脚本位置:" + job_script)
 
@@ -91,7 +91,7 @@ class RunCommand(object):
         return code
 
     def run_yaml(self,yaml_file):
-        yaml_sql_path = project_path + "/job/sql"
+        yaml_sql_path = self.config.get("job.script.path") + "/sql"
         yaml_parser = YamlParser()
         yaml_file = open(yaml_file, 'r')
         yaml_dict = yaml.safe_load(yaml_file)
