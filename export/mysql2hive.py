@@ -357,11 +357,13 @@ def run_check(options):
     threshold = diff_count * 100 / hive_count
     if threshold > 10:
         print "导出的数据总数有差异 mongodb:" + options.mysql_db + ":" + str(mysql_count) \
-                + " hive:" + options.hive_db + ":" + str(hive_count)
+                + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
+                + " threshold:" + str(threshold)
         return 1
     else:
         print "导出的数据总数 mongodb:" + options.mysql_db + ":" + str(mysql_count) \
-                + " hive:" + options.hive_db + ":" + str(hive_count)
+                + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
+                + " threshold:" + str(threshold)
         return 0
 
 
