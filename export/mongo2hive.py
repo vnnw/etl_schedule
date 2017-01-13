@@ -187,6 +187,7 @@ def run_check(options):
     partition = options.partition
     if partition is not None and len(partition) > 0:
         count_hive = count_hive + " where" + partition
+    print "count_hive_sql:" + count_hive
     hive_cursor = hive_connection.cursor()
     hive_cursor.execute(count_hive)
     r2 = hive_cursor.fetchone()
