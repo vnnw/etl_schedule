@@ -183,7 +183,7 @@ def run_check(options):
     mongo_count = mongo_collection.find().count()
     mongo_connection.close()
     hive_connection = get_hive_connection(hive_db)
-    count_hive = "select count(1) as hcount from " + options.hive_db
+    count_hive = "select count(*) as hcount from " + options.hive_db
     partition = options.partition
     if partition is not None and len(partition) > 0:
         count_hive = count_hive + " where" + partition
