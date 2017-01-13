@@ -360,7 +360,7 @@ def run_check(options):
                 + " hive:" + options.hive_db + ":" + str(hive_count)
         return 1
     else:
-        print "导出的数据总数有差异 mongodb:" + options.mysql_db + ":" + str(mysql_count) \
+        print "导出的数据总数 mongodb:" + options.mysql_db + ":" + str(mysql_count) \
                 + " hive:" + options.hive_db + ":" + str(hive_count)
         return 0
 
