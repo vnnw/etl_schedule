@@ -3,6 +3,7 @@
 
 import os
 import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import xlsxwriter
@@ -21,6 +22,7 @@ configUtil = ConfigUtil()
 '''
 传递参数说明
 '''
+
 
 def option_parser():
     usage = "usage: %prog [options] arg1 arg2"
