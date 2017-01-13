@@ -82,6 +82,7 @@ class RunCommand(object):
             return 1
 
     def run_single_command(self, command):
+        print "start run command: " + " ".join(command)
         child = subprocess.Popen(command,
                                  stdout=None,
                                  stderr=subprocess.STDOUT,
