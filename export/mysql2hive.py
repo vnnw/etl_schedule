@@ -333,6 +333,7 @@ def run_datax(json_file):
 def run_check(options):
     (format_column_list, column_name_type_list, query_sql) = process_mysql(options)
     count_mysql = "select count(1) as mcount from (" + query_sql + ") t1"
+    print "count_mysql_sql:" + count_mysql
     (mysql_db, mysql_table) = parse_mysql_db(options.mysql_db)
     mysql_connection = get_mysql_connection(mysql_db)
     mysql_cursor = mysql_connection.cursor(MySQLdb.cursors.DictCursor)
@@ -346,6 +347,7 @@ def run_check(options):
     partition = options.partition
     if partition is not None and len(partition) > 0:
         count_hive = count_hive + " where" + partition
+    print "count_hive_sql:" + count_hive
     hive_cursor = hive_connection.cursor()
     hive_cursor.execute(count_hive)
     r2 = hive_cursor.fetchone()
