@@ -1,190 +1,183 @@
-# -*- coding:utf-8 -*-
 # !/usr/bin/env python
+# -*- coding:utf-8 -*-
+
 
 import os
-import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from optparse import OptionParser
-import datetime
-import random
-import pyhs2
-from bin.configutil import ConfigUtil
-
-config_util = ConfigUtil()
-
-def get_option_parser():
-    usage = "usage: %prog [options] arg1 arg2"
-
-    parser = OptionParser(usage=usage)
-
-    parser.add_option("-s", "--sql", dest="mysql_sql", action="store", type="string", help="mysql sql")
-    parser.add_option("-i", "--hive", dest="hive_table", action="store", type="string", help="hive table")
-    parser.add_option("-t", "--to", dest="mysql_db", action="store", help="mysql database.table")
-    parser.add_option("-q", "--query", dest="hive_hql", action="store",help="hive query hql")
-    parser.add_option("-c", "--columns", dest="mysql_columns", action="store",
-                      help="mysql table columns split by comma")
-    parser.add_option("-m", "--mode", dest="mode", action="store", help="overwrite or append")
-
-    return parser
+from dateutil import DateUtil
+import re
+import yaml
 
 
-'''
-run hql > data
-'''
+class YamlParser(object):
 
-
-def hive_connection(db):
-    host = config_util.get("hive.host")
-    port = config_util.get("hive.port")
-    connection = pyhs2.connect(host=host,
-                               port=int(port),
-                               authMechanism="PLAIN",
-                               user="hadoop",
-                               password="hadoop",
-                               database=db)
-    return connection
-
-
-def run_hsql(table, hive_hql):
-    try:
-        db = table.split(".")[0]
-        connection = hive_connection(db)
-        print "start run hive table :" + str(table)
-        sys.stdout.flush()
-        hive_query = "select * from " + table
-        if hive_hql and len(hive_hql) > 0:
-            hive_query = hive_hql.strip()
-        mills = datetime.datetime.now().microsecond
-        rand = random.randint(1, 100)
-        tmpdatadir = config_util.get("tmp.dir") + "/hdatas"
-        tmpdata = tmpdatadir + "/" + str(mills) + "-" + str(rand) + ".data"
-        write_handler = open(tmpdata, 'w')
-        cursor = connection.cursor()
-        cursor.execute(hive_query)
-        rows = cursor.fetch()
-        for row in rows:
-            data = []
-            for index in range(0, len(rows)):
-                data.append(str(row[index]))
-            write_handler.writelines(",".join(data))
-        write_handler.flush()
-        write_handler.close()
-        if code != 0:
-            print "run hql error exit"
-            sys.stdout.flush()
-            return (-1, None)
-        return (code, tmpdata)
-    except Exception, e:
-        print(e)
-        sys.stdout.flush()
-        return (-1, None)
-
-
-def get_mysql_config(mysql_db):
-    prefix = "mysql" + "." + mysql_db
-    dbConfig = {}
-    dbConfig["username"] = config_util.get(prefix + ".username")
-    dbConfig["password"] = config_util.get(prefix + ".password")
-    dbConfig["host"] = config_util.get(prefix + ".host")
-    dbConfig["port"] = config_util.get(prefix + ".port")
-    return dbConfig
-
-
-def get_username_password():
-    mysql_db_table = options.mysql_db.split(".")
-    mysql_db = mysql_db_table[0]
-    mysql_table = mysql_db_table[1]
-    db_info = get_mysql_config(mysql_db)
-    return (db_info["username"], db_info["password"], db_info["host"])
-
-
-def run_mysql_command(command):
-    (username, password, host) = get_username_password()
-    mysql_path = config_util.get("mysql.path")
-    run_command = mysql_path + "/bin/mysql -u" + username + " -p" + password + " -h" + host + " -e \"" + command + "\""
-    print("run_command:" + str(run_command))
-    try:
-        code = os.system(run_command)
-        return code
-    except Exception, e:
-        print e
-        return -1
-
-
-'''
-load data to mysql
-'''
-
-
-def load_mysql(db, columns, tmpdata):
-    command = "load data test infile '" + tmpdata + "' INTO TABLE " + db + " fields terminated by '\t' (" + columns + ")"
-    code = run_mysql_command(command)
-    os.remove(tmpdata)  # remove data file
-    return code
-
-
-def run_sql(sql):
-    code = run_mysql_command(sql)
-    return code
-
-
-'''
-run hql & load to mysql
-'''
-
-
-def run(options, args):
-    hive_table = options.hive_table
-    hive_hql = options.hive_hql
-    msql = options.mysql_sql
-    if msql is not None:
-        msql = msql.strip()
-    db = options.mysql_db.strip()
-    columns = options.mysql_columns.strip()
-    try:
-        (code, tmpdata) = run_hsql(hive_table,hive_hql)
-        if code == 0:
-            if msql is not None and len(msql) > 0:
-                mcode = run_sql(msql)
-                if mcode != 0:
-                    print("run sql error")
-                    return -1
-            lcode = load_mysql(db, columns, tmpdata)
-            if lcode != 0:
-                print("load data error")
-                return -1
+    def vars_map(self, key, value):
+        if key == 'today':
+            if value is None:
+                return DateUtil.get_now_fmt(None)
             else:
-                return 0
+                return value
+        elif key == 'yesterday':
+            if value is None:
+                return DateUtil.get_yesterday_fmt(None)
+            else:
+                return value
+        elif key == 'intervalday':
+            if value is None:
+                raise Exception("intervalday is none")
+            return DateUtil.get_interval_day_fmt(value, None)
+        elif key == 'lastMonth':
+            if value is None:
+                return DateUtil.get_last_month()
+            else:
+                return value
+        elif key == 'currentMonth':
+            if value is None:
+                return DateUtil.get_current_month()
+            else:
+                return value
+        elif key == 'yesterdayMonth':
+            if value is None:
+                return DateUtil.get_yesterday_month()
+            else:
+                return value
         else:
-            print("run hsql error")
-            return -1
-    except Exception, e:
-        print(e)
-        return -1
+            return value
 
-if __name__ == "__main__":
-    reload(sys)
-    sys.setdefaultencoding('utf-8')
+    '''
+    返回 包含sql,vars
+    '''
 
-    # fakeArgs = ["-s","select * from t_test",'-t',"db_stg.driver_quiz_score"]
+    def parse_hive(self, step_dict):
+        vars = []
+        sqls = []
+        sql_paths = []
+        if step_dict.has_key('vars'):
+            vars_dict = step_dict['vars']
+            if vars_dict is not None and len(vars_dict) > 0:
+                for (var_key, var_value_dict) in vars_dict.items():
+                    var_type = var_value_dict['type']
+                    if var_value_dict.has_key('value'):
+                        var_value = var_value_dict['value']
+                    map_value = self.vars_map(var_key, var_value)
+                    if var_type == "string":
+                        vars.append("set hivevar:" + str(var_key) + "='" + str(map_value) + "';")
+                    else:
+                        vars.append("set hivevar:" + str(var_key) + "=" + str(map_value) + ";")
+        if step_dict.has_key('sqls'):
+            sql_list = step_dict['sqls']
+            if sql_list and len(sql_list) > 0:
+                for sql_dict in sql_list:
+                    sql_dict_value = sql_dict['sql']
+                    if sql_dict_value.has_key('value') and sql_dict_value['value']:
+                        sqls.append(sql_dict_value['value'])
+                    if sql_dict_value.has_key('path') and sql_dict_value['path']:
+                        sql_paths.append(sql_dict_value['path'])
+        return (vars, sqls, sql_paths)
 
-    optParser = get_option_parser()
+    def parse_export(self, python_path, project_path, step_dict):
+        command_list = []
+        if step_dict.has_key('ops'):
+            ops_list = step_dict['ops']
+            if ops_list and len(ops_list) > 0:
+                for ops_dict in ops_list:
+                    for (command_key, command_value) in ops_dict.items():
+                        command_list.append(self.export_command(python_path, project_path, command_key, command_value))
+        return command_list
 
-    options, args = optParser.parse_args(sys.argv[1:])
+    '''
+    替换变量
+    '''
+    def replace_sql_param(self,sql):
+        p = re.compile(r"\$\{[^\}\$\u0020]+\}")
+        m = p.findall(sql)
+        if m and len(m) > 0:
+            for key in m:
+                vars = key.replace("${", "")
+                vars = vars.replace("}", "")
+                sql = sql.replace(key, self.vars_map(vars, None))
+        return sql
 
-    print options
+    def export_command(self, python_path, project_path, command_key, command_value):
+        mysql2hive = project_path + '/export/mysql2hive.py'
+        mongo2hive = project_path + '/export/mongo2hive.py'
+        hive2mysql = project_path + '/export/hive2mysql.py'
+        hive2excel = project_path + '/export/hive2excel.py'
+        command_list = []
+        command_list.append(python_path)
+        if command_key == 'mysql2hive':
+            command_list.append(mysql2hive)
+            command_list.append("--from")
+            command_list.append(command_value['mysql_db'])
+            command_list.append("--to")
+            command_list.append(command_value['hive_db'])
+            if command_value.has_key("include_columns") and command_value['include_columns']:
+                command_list.append("--columns")
+                command_list.append(command_value['include_columns'])
+            if command_value.has_key("exclude_columns") and command_value['exclude_columns']:
+                command_list.append("--exclude-columns")
+                command_list.append(command_value['exclude_columns'])
+            return command_list
+        if command_key == 'mongo2hive':
+            command_list.append(mongo2hive)
+            command_list.append("--file")
+            command_list.append(command_value["yaml_file"])
+            command_list.append("--from")
+            command_list.append(command_value["mongo_db"])
+            command_list.append("--to")
+            command_list.append(command_value["hive_db"])
+            return command_list
+        if command_key == 'hive2mysql':
+            command_list.append(hive2mysql)
+            if command_value.has_key("delete_sql") and command_value["delete_sql"]:
+                command_list.append("--sql")
+                sql = self.replace_sql_param(command_value["delete_sql"])
+                command_list.append(sql)
+            if command_value.has_key("query") and command_value["query"]:
+                command_list.append("--query")
+                hql = self.replace_sql_param(command_value["query"])
+                command_list.append(hql)
+            command_list.append("--hive")
+            command_list.append(command_value['hive_db'])
+            command_list.append("--to")
+            command_list.append(command_value['mysql_db'])
+            command_list.append("--columns")
+            command_list.append(command_value['mysql_columns'])
+            return command_list
+        if command_key == 'hive2excel':
+            command_list.append(hive2excel)
+            command_list.append("--name")
+            command_list.append(command_value['excel_name'])
+            command_list.append("--subject")
+            command_list.append(command_value['email_subject'])
+            command_list.append("--content")
+            command_list.append(command_value['email_content'])
+            command_list.append("--tables")
+            command_list.append(command_value['hive_db'])
+            command_list.append("--receivers")
+            command_list.append(command_value['email_receivers'])
+            return command_list
 
-    if options.hive_table is None:
-        print("require hive table")
-        optParser.print_help()
-        sys.exit(1)
-    if options.mysql_db is None:
-        print("require mysql db")
-        optParser.print_help()
-        sys.exit(1)
-    if options.mysql_columns is None:
-        print("require mysql columns")
-        optParser.print_help()
-        sys.exit(1)
-    code = run(options, args)
-    sys.exit(code)
+
+# for test
+if __name__ == '__main__':
+    basepath = "../job/script/app"
+    for file in os.listdir(basepath):
+        print "------" + file
+        yaml_file = open(basepath + "/" + file, 'r')
+        yaml_sql_path = "/job/sql"
+        yaml_parser = YamlParser()
+        yaml_dict = yaml.safe_load(yaml_file)
+        steps = yaml_dict['steps']
+        if steps and len(steps) > 0:
+            for step in steps:
+                step_type = step['type']
+                if step_type == 'hive':
+                    (vars, sqls, sql_paths) = yaml_parser.parse_hive(step)
+                    print "vars:", len(vars), vars
+                    print  "sqls:", len(sqls), sqls
+                    print "sql_paths", len(sql_paths), sql_paths
+                if step_type == 'export':
+                    command_list = yaml_parser.parse_export("", "", step)
+                    if command_list and len(command_list) > 0:
+                        for command in command_list:
+                            print command

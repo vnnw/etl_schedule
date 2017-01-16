@@ -20,6 +20,7 @@ def get_option_parser():
     parser.add_option("-s", "--sql", dest="mysql_sql", action="store", type="string", help="mysql sql")
     parser.add_option("-i", "--hive", dest="hive_table", action="store", type="string", help="hive table")
     parser.add_option("-t", "--to", dest="mysql_db", action="store", help="mysql database.table")
+    parser.add_option("-q", "--query", dest="hive_hql", action="store",help="hive query hql")
     parser.add_option("-c", "--columns", dest="mysql_columns", action="store",
                       help="mysql table columns split by comma")
     parser.add_option("-m", "--mode", dest="mode", action="store", help="overwrite or append")
@@ -44,20 +45,22 @@ def hive_connection(db):
     return connection
 
 
-def run_hsql(table):
+def run_hsql(table, hive_hql):
     try:
         db = table.split(".")[0]
         connection = hive_connection(db)
         print "start run hive table :" + str(table)
         sys.stdout.flush()
-        hive_sql = "select * from " + table
+        hive_query = "select * from " + table
+        if hive_hql and len(hive_hql) > 0:
+            hive_query = hive_hql.strip()
         mills = datetime.datetime.now().microsecond
         rand = random.randint(1, 100)
         tmpdatadir = config_util.get("tmp.dir") + "/hdatas"
         tmpdata = tmpdatadir + "/" + str(mills) + "-" + str(rand) + ".data"
         write_handler = open(tmpdata, 'w')
         cursor = connection.cursor()
-        cursor.execute(hive_sql)
+        cursor.execute(hive_query)
         rows = cursor.fetch()
         for row in rows:
             data = []
@@ -132,14 +135,14 @@ run hql & load to mysql
 
 def run(options, args):
     hive_table = options.hive_table
-
+    hive_hql = options.hive_hql
     msql = options.mysql_sql
     if msql is not None:
         msql = msql.strip()
     db = options.mysql_db.strip()
     columns = options.mysql_columns.strip()
     try:
-        (code, tmpdata) = run_hsql(hive_table)
+        (code, tmpdata) = run_hsql(hive_table,hive_hql)
         if code == 0:
             if msql is not None and len(msql) > 0:
                 mcode = run_sql(msql)
@@ -158,7 +161,6 @@ def run(options, args):
     except Exception, e:
         print(e)
         return -1
-
 
 if __name__ == "__main__":
     reload(sys)
