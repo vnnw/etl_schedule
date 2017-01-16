@@ -55,7 +55,7 @@ def run_hsql(table, hive_hql):
         hive_query = "select * from " + table
         if hive_hql and len(hive_hql) > 0:
             hive_query = hive_hql.strip()
-        print "Query:", hive_hql
+        print "Query:", hive_query
         mills = datetime.datetime.now().microsecond
         rand = random.randint(1, 100)
         tmpdatadir = config_util.get("tmp.path") + "/hdatas"
