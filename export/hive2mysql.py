@@ -57,7 +57,7 @@ def run_hsql(table, hive_hql):
             hive_query = hive_hql.strip()
         mills = datetime.datetime.now().microsecond
         rand = random.randint(1, 100)
-        tmpdatadir = config_util.get("tmp.dir") + "/hdatas"
+        tmpdatadir = config_util.get("tmp.path") + "/hdatas"
         tmpdata = tmpdatadir + "/" + str(mills) + "-" + str(rand) + ".data"
         write_handler = open(tmpdata, 'w')
         cursor = connection.cursor()
