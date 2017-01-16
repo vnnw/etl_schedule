@@ -8,6 +8,7 @@ from optparse import OptionParser
 import datetime
 import random
 import pyhs2
+import traceback
 from bin.configutil import ConfigUtil
 
 config_util = ConfigUtil()
@@ -75,7 +76,7 @@ def run_hsql(table, hive_hql):
             return (-1, None)
         return (code, tmpdata)
     except Exception, e:
-        print(e)
+        print(traceback.format_exc())
         sys.stdout.flush()
         return (-1, None)
 
@@ -107,7 +108,7 @@ def run_mysql_command(command):
         code = os.system(run_command)
         return code
     except Exception, e:
-        print e
+        print traceback.format_exc()
         return -1
 
 
