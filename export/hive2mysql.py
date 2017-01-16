@@ -74,7 +74,6 @@ def run_hsql(table, hive_hql):
         write_handler.close()
         return (0, tmpdata)
     except Exception, e:
-	print row
         print(traceback.format_exc())
         sys.stdout.flush()
         return (-1, None)
