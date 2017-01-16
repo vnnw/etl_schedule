@@ -67,17 +67,14 @@ def run_hsql(table, hive_hql):
         rows = cursor.fetch()
         for row in rows:
             data = []
-            for index in range(0, len(rows)):
+            for index in range(0, len(row)):
                 data.append(str(row[index]))
-            write_handler.writelines(",".join(data))
+            write_handler.writelines(",".join(data)+'\n')
         write_handler.flush()
         write_handler.close()
-        if code != 0:
-            print "run hql error exit"
-            sys.stdout.flush()
-            return (-1, None)
-        return (code, tmpdata)
+        return (0, tmpdata)
     except Exception, e:
+	print row
         print(traceback.format_exc())
         sys.stdout.flush()
         return (-1, None)
@@ -104,6 +101,7 @@ def get_username_password():
 def run_mysql_command(command):
     (username, password, host) = get_username_password()
     mysql_path = config_util.get("mysql.path")
+    print mysql_path
     run_command = mysql_path + "/bin/mysql -u" + username + " -p" + password + " -h" + host + " -e \"" + command + "\""
     print("run_command:" + str(run_command))
     try:
@@ -120,9 +118,9 @@ load data to mysql
 
 
 def load_mysql(db, columns, tmpdata):
-    command = "load data test infile '" + tmpdata + "' INTO TABLE " + db + " fields terminated by '\t' (" + columns + ")"
+    command = "load data local infile '" + tmpdata + "' INTO TABLE " + db + " fields terminated by ','  (" + columns + ")"
     code = run_mysql_command(command)
-    os.remove(tmpdata)  # remove data file
+    #os.remove(tmpdata)  # remove data file
     return code
 
 

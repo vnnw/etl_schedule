@@ -35,7 +35,10 @@ class ConfigUtil(object):
         return config
 
     def get(self, name):
-        return self.config.get(name)
+        value = self.config.get(name)
+	if not value:
+		raise Exception("读取配置" + name + "失败")
+	return value
 
     def getOrElse(self, name, default):
         value = self.config.get(name)
