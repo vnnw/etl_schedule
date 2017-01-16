@@ -131,11 +131,11 @@ class YamlParser(object):
             if command_value.has_key("delete_sql") and command_value["delete_sql"]:
                 command_list.append("--sql")
                 sql = self.replace_sql_param(command_value["delete_sql"])
-                command_list.append(sql)
+                command_list.append("\""+sql + "\"")
             if command_value.has_key("query") and command_value["query"]:
                 command_list.append("--query")
                 hql = self.replace_sql_param(command_value["query"])
-                command_list.append(hql)
+                command_list.append("\"" + hql + "\"")
             command_list.append("--hive")
             command_list.append(command_value['hive_db'])
             command_list.append("--to")
