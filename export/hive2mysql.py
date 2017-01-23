@@ -101,7 +101,7 @@ def run_mysql_command(command):
     (username, password, host) = get_username_password()
     mysql_path = config_util.get("mysql.path")
     print mysql_path
-    run_command = mysql_path + "/bin/mysql -u" + username + " -p" + password + " -h" + host + " -e \"" + command + "\""
+    run_command = mysql_path + "/bin/mysql -u" + username + " -p" + password + " -h" + host + " -e " + command
     print("run_command:" + str(run_command))
     try:
         code = os.system(run_command)

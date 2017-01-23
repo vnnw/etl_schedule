@@ -174,7 +174,7 @@ if __name__ == '__main__':
                 if step_type == 'hive':
                     (vars, sqls, sql_paths) = yaml_parser.parse_hive(step)
                     print "vars:", len(vars), vars
-                    print  "sqls:", len(sqls), sqls
+                    print "sqls:", len(sqls), sqls
                     print "sql_paths", len(sql_paths), sql_paths
                 if step_type == 'export':
                     command_list = yaml_parser.parse_export("", "", step)
