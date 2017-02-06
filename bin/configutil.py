@@ -10,7 +10,7 @@ import os
 
 class ConfigUtil(object):
     def __init__(self):
-        envpath = os.getenv("ETL_PATH_FAKE", "")
+        envpath = os.getenv("ETL_SCHEDULE_PATH", "")
         if envpath == "" or len(envpath) == 0: # test/config.ini 可以随意设置
             path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             config_path = path + "/config/test/config.ini"
