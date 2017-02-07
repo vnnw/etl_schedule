@@ -161,11 +161,20 @@ class Executor(object):
 
     def check_job_run_failed(self, job_name):
         try:
-            self.dboption.update_job_failed(job_name)
-            self.logger.info("更新Job:" + job_name + "运行失败,状态Failed")
-            self.dboption.update_job_queue_failed(job_name)
-            self.logger.info("更新Job Queue:" + job_name + " 状态为Failed")
-            self.monitor.monitor(job_name)
+            # 可以判断job 运行的次数
+            job_info = self.dboption.get_job_info(job_name)
+            retry_count = job_info['retry_count']
+            job_queue_info = self.dboption.get_queue_job(job_name)
+            run_number = job_queue_info['run_number']
+            if run_number > retry_count :
+                self.dboption.update_job_failed(job_name)
+                self.logger.info("更新Job:" + job_name + "运行失败,状态Failed")
+                self.dboption.update_job_queue_failed(job_name)
+                self.logger.info("更新Job Queue:" + job_name + " 状态为Failed")
+                self.monitor.monitor(job_name)
+            else:
+                # 删除queue 中的job
+                self.dboption.remove_queue_job(job_name)
         except Exception, e:
             self.logger.error(traceback.format_exc())
             self.logger.error("子进程运行Job:" + str(job_name) + " 运行失败,发送通知异常")

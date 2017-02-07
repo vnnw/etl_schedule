@@ -73,6 +73,10 @@ def desc_colums(connection, table):
     rows = cursor.fetch()
     col_list = []
     for row in rows:
+        if row[0].startswith("#"):
+            break
+        if len(row[0]) == 0:
+            continue
         col_list.append({"col_name": row[0], "col_comment": row[2]})
     cursor.close()
     return col_list

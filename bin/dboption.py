@@ -5,6 +5,7 @@ from logutil import Logger
 from dateutil import DateUtil
 from dbutil import DBUtil
 import MySQLdb
+import traceback
 
 JOB_RUNNING = "Running"
 JOB_DONE = "Done"
@@ -35,7 +36,7 @@ class DBOption(object):
             connection.close()
             return rows
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
     # 更新时间出发Job 的状态为 Pending
@@ -50,7 +51,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return 0
 
     # 获取当前运行的Job
@@ -65,7 +66,7 @@ class DBOption(object):
             connection.close()
             return rows
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
             # 查询 Job 信息
@@ -80,7 +81,7 @@ class DBOption(object):
             connection.close()
             return row
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
     # 查询 job 的 依赖job
@@ -96,7 +97,7 @@ class DBOption(object):
             connection.close()
             return rows
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
     # 获取job 依赖运行状态
@@ -114,7 +115,7 @@ class DBOption(object):
             connection.close()
             return rows
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
     def get_pending_jobs(self):
@@ -129,7 +130,7 @@ class DBOption(object):
             connection.close()
             return rows
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
     # 获取需要运行的任务数 状态为 Pending
@@ -146,7 +147,7 @@ class DBOption(object):
             connection.close()
             return rows
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
     # 获取 t_etl_job_queue 中等待运行的Job , 或者是今天已经运行完成的job
@@ -164,7 +165,7 @@ class DBOption(object):
             connection.close()
             return row
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
     # 保存 t_etl_job_queue 等待运行
@@ -173,13 +174,13 @@ class DBOption(object):
         try:
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
-            cursor.execute(sql, (job_name, DateUtil.get_now(), 3, JOB_PENDING))
+            cursor.execute(sql, (job_name, DateUtil.get_now(), 1, JOB_PENDING))
             cursor.close()
             connection.commit()
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return 0
 
     def get_queue_job_pending(self):
@@ -193,7 +194,7 @@ class DBOption(object):
             connection.close()
             return row
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
 
     def update_job_running(self, job_name):
         time_string = DateUtil.format_year_second(DateUtil.get_timestamp())
@@ -207,7 +208,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return 0
 
     def update_job_done(self, job_name):
@@ -225,7 +226,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return 0
 
     # 修改 job 的运行状态为 Failed
@@ -243,7 +244,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return 0
 
     # 获取需要触发的job
@@ -258,7 +259,7 @@ class DBOption(object):
             connection.close()
             return rows
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
 
     # 更新job状态为 Pending
     def update_job_pending(self, job_name):
@@ -274,7 +275,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return 0
 
     def update_job_pending_from_running(self, job_name):
@@ -290,7 +291,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return 0
 
     def update_job_queue_done(self, job_name):
@@ -307,7 +308,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return 0
 
     ''' 更新是按照天的,如果一天运行多次就有问题了, 运行多次应该更新最新的'''
@@ -326,7 +327,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return 0
 
     def get_main_man(self):
@@ -340,7 +341,7 @@ class DBOption(object):
             connection.close()
             return rows
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
     def get_main_man_user(self, user_name):
@@ -354,7 +355,7 @@ class DBOption(object):
             connection.close()
             return row
         except Exception, e:
-            self.logger.error(e)
+            self.logger.error(traceback.format_exc())
             return None
 
     def save_time_trigger_job(self, job_name, trigger_type, day, hour, minute, interval, man, script):
@@ -371,7 +372,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            print e
+            self.logger.error(traceback.format_exc())
             return 0
 
     def save_depdency_trigger_job(self, job_name, trigger_type, dep_jobs, stream, man, script):
@@ -391,7 +392,7 @@ class DBOption(object):
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            print e
+            self.logger.error(traceback.format_exc())
             return 0
 
     # no use
@@ -401,6 +402,9 @@ class DBOption(object):
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(etl_job_sql, (job_name))
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
         except Exception, e:
             print e
             return 0
@@ -414,7 +418,7 @@ class DBOption(object):
             row = cursor.fetchone()
             return row
         except Exception, e:
-            print e
+            self.logger.error(traceback.format_exc())
             return None
 
     def get_etl_job_trigger(self, job_name):
@@ -427,5 +431,33 @@ class DBOption(object):
             row = cursor.fetchone()
             return row
         except Exception, e:
-            print e
+            self.logger.error(traceback.format_exc())
             return None
+
+    def update_job_retry_count(self, job_name, retry_count):
+        try:
+            update_sql = "update t_etl_job set retry_count = %s where job_name = %s"
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(update_sql,(retry_count, job_name))
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
+        except Exception, e:
+            self.logger.error(traceback.format_exc())
+            return 0
+
+    def remove_queue_job(self, job_name):
+        try:
+            current_date = DateUtil.get_now_fmt()
+            print current_date
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor()
+            remove_sql = "delete from t_etl_job_queue where job_name = %s and run_date = %s"
+            cursor.execute(remove_sql, job_name, current_date)
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
+        except Exception,e:
+            self.logger.error(traceback.format_exc())
+            return 0
