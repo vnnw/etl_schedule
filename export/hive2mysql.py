@@ -119,7 +119,7 @@ load data to mysql
 def load_mysql(db, columns, tmpdata):
     command = "load data local infile '" + tmpdata + "' INTO TABLE " + db + " fields terminated by ','  (" + columns + ")"
     code = run_mysql_command(command)
-    #os.remove(tmpdata)  # remove data file
+    os.remove(tmpdata)  # remove data file
     return code
 
 
