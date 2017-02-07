@@ -41,7 +41,7 @@ class ETLUtil(object):
                 trigger_type = line_array[1]
                 man = line_array[len(line_array) - 2]
                 script = line_array[len(line_array) - 1].strip()
-                script_path = self.config.get("job.script.path") + "/" + script
+                script_path = self.config.get("job.script.path") + "/script/" + script
                 self.check_script_path(script_path)
                 if len(line_array) == 8:
                     day = line_array[2]

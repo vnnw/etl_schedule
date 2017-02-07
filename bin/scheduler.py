@@ -106,12 +106,14 @@ class Scheduler(object):
                 if require_time > 5:  # 强制的判断方式有点问题,判断5次
                     break
                 self.logger.info("第" + str(require_time) + " 次运行")
+                self.logger.info("可以运行的job数量:" + str(len(should_require_jobs)) + " 需要运行的job数量:" + str(require_jobs_count))
                 pending_jobs = self.dboption.get_pending_jobs_by_require_time(require_time, max_running_jobs)
                 for job in pending_jobs:
                     job_name = job["job_name"]
                     self.logger.info("判断Job:" + job_name + "依赖是否全部运行完成")
                     should_run = self.reslove_job_dep(job)
                     if should_run:  # FixMe 需要判断今天是否运行过
+                        self.logger.info("job:" + job_name + " 依赖全部运行完成添加到可以运行的job列表中")
                         should_require_jobs.add(job_name)
                         if len(should_require_jobs) == require_jobs_count:
                             should_continue = False
@@ -137,10 +139,10 @@ class Scheduler(object):
             dep_job_last_run_date = dep_job["last_run_date"]  # 最后一次运行日期
             self.logger.info("job_name:" + job_name + " 依赖的Job:" + dep_job_name + " 运行状态:" + str(dep_job_status)
                              + " 最后运行时间:" + str(dep_job_last_run_date))
-            if dep_job_last_run_date != today:
+            if dep_job_last_run_date and dep_job_last_run_date != today:
                 should_run = False
                 self.logger.info("因Job:" + job_name + " 依赖Job:" + dep_job_name +
-                                 "最后运行时间" + dep_job_last_run_date + "不是今天:" + today + ",无法运行")
+                                 "最后运行时间" + str(dep_job_last_run_date) + "不是今天:" + today + ",无法运行")
 
                 break
             if dep_job_status != "Done":
