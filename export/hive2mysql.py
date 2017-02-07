@@ -55,6 +55,7 @@ def run_hsql(table, hive_hql):
         hive_query = "select * from " + table
         if hive_hql and len(hive_hql) > 0:
             hive_query = hive_hql.strip()
+            hive_query = hive_query.replace(";", "")
         print "Query:", hive_query
         mills = datetime.datetime.now().microsecond
         rand = random.randint(1, 100)
