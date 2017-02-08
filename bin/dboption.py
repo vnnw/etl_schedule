@@ -74,7 +74,7 @@ class DBOption(object):
     def get_job_info(self, job_name):
         try:
             connection = self.dbUtil.get_connection()
-            sql = "select job_name,job_status,job_trigger,job_script,main_man from t_etl_job where job_name = %s"
+            sql = "select job_name,job_status,job_trigger,job_script,main_man,retry_count from t_etl_job where job_name = %s"
             cursor = connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute(sql, (job_name,))
             row = cursor.fetchone()
@@ -154,7 +154,7 @@ class DBOption(object):
     def get_queue_job(self, job_name):
         time = DateUtil.get_now()
         day = DateUtil.format_year_day(time)
-        sql = "select job_name,job_status from t_etl_job_queue where job_name = %s and (job_status = %s " \
+        sql = "select job_name,job_status,run_number from t_etl_job_queue where job_name = %s and (job_status = %s " \
               "or (job_status=%s and run_date = %s))"
         try:
             connection = self.dbUtil.get_connection()
@@ -184,7 +184,7 @@ class DBOption(object):
             return 0
 
     def get_queue_job_pending(self):
-        sql = "select job_name from t_etl_job_queue where job_status = %s order by create_time asc limit 1"
+        sql = "select job_name,run_number from t_etl_job_queue where job_status = %s order by create_time asc limit 1"
         try:
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor(MySQLdb.cursors.DictCursor)
@@ -198,11 +198,11 @@ class DBOption(object):
 
     def update_job_running(self, job_name):
         time_string = DateUtil.format_year_second(DateUtil.get_timestamp())
-        run_sql = "update t_etl_job set job_status = %s , last_start_time=%s where job_name=%s and job_status = %s"
+        run_sql = "update t_etl_job set job_status = %s , last_start_time=%s where job_name=%s and (job_status = %s or job_status = %s)"
         try:
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
-            cursor.execute(run_sql, (JOB_RUNNING, time_string, job_name, JOB_PENDING))
+            cursor.execute(run_sql, (JOB_RUNNING, time_string, job_name, JOB_PENDING,JOB_RUNNING))
             cursor.close()
             connection.commit()
             connection.close()
@@ -434,12 +434,14 @@ class DBOption(object):
             self.logger.error(traceback.format_exc())
             return None
 
-    def update_job_retry_count(self, job_name, retry_count):
+    def update_job_run_number(self, job_name, retry_count):
         try:
-            update_sql = "update t_etl_job set retry_count = %s where job_name = %s"
+            current_date = DateUtil.get_now_fmt(None)
+            update_sql = "update t_etl_job_queue set run_number = %s , job_status = %s " \
+                         "where job_name = %s and run_date = %s and job_status = %s"
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
-            cursor.execute(update_sql,(retry_count, job_name))
+            cursor.execute(update_sql,(retry_count,JOB_PENDING,job_name,current_date,JOB_DONE))
             connection.commit()
             connection.close()
             return cursor.rowcount
@@ -449,12 +451,12 @@ class DBOption(object):
 
     def remove_queue_job(self, job_name):
         try:
-            current_date = DateUtil.get_now_fmt()
+            current_date = DateUtil.get_now_fmt(None)
             print current_date
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             remove_sql = "delete from t_etl_job_queue where job_name = %s and run_date = %s"
-            cursor.execute(remove_sql, job_name, current_date)
+            cursor.execute(remove_sql, (job_name, current_date))
             connection.commit()
             connection.close()
             return cursor.rowcount

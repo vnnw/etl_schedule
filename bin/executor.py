@@ -15,7 +15,6 @@ import traceback
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_path)
 
-
 '''
 1. 遍历t_etl_job_queue 表,确定可以运行的Job
 2. 启动进程运行Job对应的脚本
@@ -23,7 +22,6 @@ sys.path.append(project_path)
 
 
 class Executor(object):
-
     def __init__(self):
         self.logger = Logger("executor").getlog()
         self.aps_log = Logger("apscheduler").getlog()
@@ -57,11 +55,12 @@ class Executor(object):
                 job_name = queue_job["job_name"]
                 etl_job = self.dboption.get_job_info(job_name)
                 job_status = etl_job["job_status"]
-                if job_status != "Pending":
-                    self.logger.info("当前 Job:" + job_name + " 状态 " + job_status + " 不是Pending 无法运行")
+                job_retry_count = etl_job["retry_count"]
+                run_number = queue_job["run_number"]
+                if not self.check_should_run(job_name, job_status, job_retry_count, run_number):
                     return
 
-                logfile = today_log_dir + "/" + job_name + "_" + today + ".log"
+                logfile = today_log_dir + "/" + job_name + "_" + today + ".log." + str(run_number)
                 bufsize = 0
                 logfile_handler = open(logfile, 'w', bufsize)
                 python_path = self.config.get("python.home")
@@ -89,7 +88,7 @@ class Executor(object):
                     else:
                         self.logger.info("更新Job:" + job_name + " 运行状态Running")
                         code = self.dboption.update_job_queue_done(job_name)  # FixMe 事物问题
-                        self.logger.info("更新Job Queue job:" + str(job_name) + " 状态为Done,影响行数:" + str(code))
+                        self.logger.info("更新Queue job:" + str(job_name) + " 状态为Done,影响行数:" + str(code))
                         if code != 1:
                             self.logger.error("更新Job Queue job:" + job_name + " 状态为Done失败")
                             self.terminate_process(child, logfile_handler)
@@ -108,7 +107,24 @@ class Executor(object):
             self.logger.error(traceback.format_exc())
             self.logger.error("run_queue_job_pending 获取 t_etl_job_queue 的中的Job 异常")
 
-    # 停止启动的进程
+    '''
+     判断是否可以运行
+    '''
+
+    def check_should_run(self, job_name, job_status, retry_count, run_number):
+        if run_number == 1 and job_status != "Pending":  # 首次运行
+            self.logger.info("当前 Job:" + job_name + " 状态 " + job_status + " 不是Pending 无法运行")
+            return False
+        if run_number > retry_count:
+            self.logger.info("当前Job:" + job_name + " retry_count:" +
+                             str(retry_count) + " run_number:" + str(run_number) + " 无法运行")
+            return False
+        return True
+
+    '''
+    停止启动的进程
+    '''
+
     def terminate_process(self, child, logfile):
         try:
             pid = child.pid
@@ -161,20 +177,20 @@ class Executor(object):
 
     def check_job_run_failed(self, job_name):
         try:
-            # 可以判断job 运行的次数
+            # 判断job 运行的次数
             job_info = self.dboption.get_job_info(job_name)
             retry_count = job_info['retry_count']
             job_queue_info = self.dboption.get_queue_job(job_name)
             run_number = job_queue_info['run_number']
-            if run_number > retry_count :
+            if run_number >= retry_count:
                 self.dboption.update_job_failed(job_name)
                 self.logger.info("更新Job:" + job_name + "运行失败,状态Failed")
                 self.dboption.update_job_queue_failed(job_name)
                 self.logger.info("更新Job Queue:" + job_name + " 状态为Failed")
                 self.monitor.monitor(job_name)
             else:
-                # 删除queue 中的job
-                self.dboption.remove_queue_job(job_name)
+                code = self.dboption.update_job_run_number(job_name, run_number + 1)
+                self.logger.info("Job:" + job_name + " 第 " + str(run_number + 1) + " 次运行")
         except Exception, e:
             self.logger.error(traceback.format_exc())
             self.logger.error("子进程运行Job:" + str(job_name) + " 运行失败,发送通知异常")
@@ -195,10 +211,12 @@ class Executor(object):
                     if return_code == 0:
                         file_handler.flush()
                         file_handler.close()
-                        self.logger.info("进程:" + str(pid) + " 运行code:" + str(return_code) + " job:" + job_name + " 运行成功")
+                        self.logger.info(
+                                "进程:" + str(pid) + " 运行code:" + str(return_code) + " job:" + job_name + " 运行成功")
                         self.check_job_run_success(job_name)
                     else:
-                        self.logger.info("进程" + str(pid) + " 运行 code:" + str(return_code) + " Job:" + job_name + " 运行失败")
+                        self.logger.info(
+                                "进程" + str(pid) + " 运行 code:" + str(return_code) + " Job:" + job_name + " 运行失败")
                         self.check_job_run_failed(job_name)
                     self.process_running.pop(child)  # 删除子进程
                 else:
