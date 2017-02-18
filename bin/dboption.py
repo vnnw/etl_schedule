@@ -382,9 +382,8 @@ class DBOption(object):
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(etl_job_sql, (job_name, JOB_DONE, script, trigger_type, man))
-            dep_jobs_array = dep_jobs.split(" ")
             dep_job_sql = "insert into t_etl_job_dependency(job_name,dependency_job) values(%s,%s)"
-            for dep_job in dep_jobs_array:
+            for dep_job in dep_jobs:
                 cursor.execute(dep_job_sql, (job_name, dep_job.upper()))
             stream_job_sql = "insert into t_etl_job_stream(job_name,stream_job) values(%s,%s)"
             cursor.execute(stream_job_sql, (stream, job_name))
