@@ -61,14 +61,29 @@ class ETLUtil(object):
                 if len(line_array) == 6:
                     dep_jobs = line_array[2].strip().upper()
                     stream = line_array[3].strip().upper()
+                    # 依赖job,已经依赖的
+                    each_dep_job_exists = {}
                     for dep_job in dep_jobs.split(" "):
                         job = self.dboption.get_job_info(dep_job)
+                        dep_job_exists = self.dboption.get_dependency_job(dep_job)
+                        dep_job_set = set()
+                        for dep_job_exist in dep_job_exists:
+                            dep_job_set.add(dep_job_exist["dependency_job"])
+                        each_dep_job_exists[dep_job] = dep_job_set
                         if job is None:
-                            raise Exception("Job :" + dep_job + " 不存在")
+                            raise Exception("依赖Job :" + dep_job + " 不存在")
+                    add_job_dep_sets = set(dep_jobs)
+                    for dep_job in each_dep_job_exists:
+                        dep_job_exist_set = add_job_dep_sets & each_dep_job_exists[dep_job]
+                        if dep_job_exist_set > 0:
+                            for dep_job_exist in dep_job_exists:
+                                print("依赖Job:" + str(dep_job_exist) + " 已经被依赖Job:" + dep_job + " 依赖可以不用配置")
+                                add_job_dep_sets.remove(dep_job_exist)
+                    print("需要配置依赖:" + str(add_job_dep_sets))
                     stream_job = self.dboption.get_job_info(stream)
                     if stream_job is None:
                         raise Exception("Job:" + stream + " 不存在")
-                    code = self.dboption.save_depdency_trigger_job(job_name, trigger_type, dep_jobs, stream, man,
+                    code = self.dboption.save_depdency_trigger_job(job_name, trigger_type, add_job_dep_sets, stream, man,
                                                                    script)
                     if code == 1:
                         print("添加依赖触发Job 成功")
