@@ -37,6 +37,9 @@ class ETLUtil(object):
                 raise Exception("配置格式错误")
             else:
                 job_name = line_array[0].upper()
+                job_info = self.dboption.get_job_info(job_name)
+                if job_info:
+                    raise Exception("Job:" + job_name + " 已经存在")
                 trigger_type = line_array[1]
                 man = line_array[len(line_array) - 2]
                 script = line_array[len(line_array) - 1].strip()
@@ -86,7 +89,7 @@ class ETLUtil(object):
                     code = self.dboption.save_depdency_trigger_job(job_name, trigger_type, add_job_dep_sets, stream, man,
                                                                    script)
                     if code == 1:
-                            print("添加依赖触发Job 成功")
+                        print("添加依赖触发Job 成功")
 
     def check_script_path(self, path):
         exists = os.path.exists(path)
