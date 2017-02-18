@@ -68,7 +68,7 @@ class ETLUtil(object):
                         add_job_dep_sets.add(dep_job)
                         dep_job_exists = self.dboption.get_dependency_job(dep_job)
                         dep_job_set = set()
-                        for dep_job_exist in dep_job_exists:
+                        for dep_job_exist in dep_job_exists:  # 检查两层
                             dep_job_set.add(dep_job_exist["dependency_job"])
                         each_dep_job_exists[job["job_name"]] = dep_job_set
                         if job is None:
