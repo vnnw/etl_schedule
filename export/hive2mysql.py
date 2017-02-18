@@ -12,6 +12,7 @@ import traceback
 from bin.configutil import ConfigUtil
 
 config_util = ConfigUtil()
+DATA_SPLIT = "|"
 
 def get_option_parser():
     usage = "usage: %prog [options] arg1 arg2"
@@ -70,7 +71,7 @@ def run_hsql(table, hive_hql):
             data = []
             for index in range(0, len(row)):
                 data.append(str(row[index]))
-            write_handler.writelines(",".join(data)+'\n')
+            write_handler.writelines(DATA_SPLIT.join(data)+'\n')
         write_handler.flush()
         write_handler.close()
         return (0, tmpdata)
@@ -118,7 +119,8 @@ load data to mysql
 
 
 def load_mysql(db, columns, tmpdata):
-    command = "load data local infile '" + tmpdata + "' INTO TABLE " + db + " fields terminated by ','  (" + columns + ")"
+    command = "load data local infile '" + tmpdata + "' INTO TABLE " + db \
+              + " fields terminated by '" + DATA_SPLIT +"' (" + columns + ")"
     code = run_mysql_command(command)
     os.remove(tmpdata)  # remove data file
     return code
