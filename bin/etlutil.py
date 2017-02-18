@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding:utf-8 -*-
 
 from dboption import DBOption
@@ -63,8 +62,10 @@ class ETLUtil(object):
                     stream = line_array[3].strip().upper()
                     # 依赖job,已经依赖的
                     each_dep_job_exists = {}
+ 		    add_job_dep_sets = set()
                     for dep_job in dep_jobs.split(" "):
                         job = self.dboption.get_job_info(dep_job)
+			add_job_dep_sets.add(dep_job)
                         dep_job_exists = self.dboption.get_dependency_job(dep_job)
                         dep_job_set = set()
                         for dep_job_exist in dep_job_exists:
@@ -72,20 +73,20 @@ class ETLUtil(object):
                         each_dep_job_exists[job["job_name"]] = dep_job_set
                         if job is None:
                             raise Exception("依赖Job :" + dep_job + " 不存在")
-                    add_job_dep_sets = set(dep_jobs)
                     for dep_job in each_dep_job_exists:
                         dep_job_exist_set = add_job_dep_sets & each_dep_job_exists[dep_job]
-                        if dep_job_exist_set > 0:
-                            for dep_job_exist in dep_job_exists:
+                        if len(dep_job_exist_set) > 0:
+                            for dep_job_exist in dep_job_exist_set:
                                 print("依赖Job:" + str(dep_job_exist) + " 已经被依赖Job:" + dep_job + " 依赖可以不用配置")
                                 add_job_dep_sets.remove(dep_job_exist)
                     print("需要配置依赖:" + str(add_job_dep_sets))
                     stream_job = self.dboption.get_job_info(stream)
                     if stream_job is None:
                         raise Exception("Job:" + stream + " 不存在")
-                    code = self.dboption.save_depdency_trigger_job(job_name, trigger_type, add_job_dep_sets, stream, man,
-                                                                   script)
-                    if code == 1:
+                    #code = self.dboption.save_depdency_trigger_job(job_name, trigger_type, add_job_dep_sets, stream, man,
+                    #                                               script)
+                    code = 1
+		    if code == 1:
                         print("添加依赖触发Job 成功")
 
     def check_script_path(self, path):
@@ -135,6 +136,9 @@ class ETLUtil(object):
 
 
 if __name__ == '__main__':
+    reload(sys)
+    sys.setdefaultencoding('utf-8')
+    
     etl = ETLUtil()
 
     # args_array = "-p /Users/yxl/Desktop/job.txt".split(" ")
