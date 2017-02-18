@@ -69,7 +69,7 @@ class ETLUtil(object):
                         dep_job_set = set()
                         for dep_job_exist in dep_job_exists:
                             dep_job_set.add(dep_job_exist["dependency_job"])
-                        each_dep_job_exists[dep_job] = dep_job_set
+                        each_dep_job_exists[job["job_name"]] = dep_job_set
                         if job is None:
                             raise Exception("依赖Job :" + dep_job + " 不存在")
                     add_job_dep_sets = set(dep_jobs)
