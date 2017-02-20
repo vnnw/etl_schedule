@@ -107,9 +107,9 @@ class YamlParser(object):
         m = p.findall(sql)
         if m and len(m) > 0:
             for key in m:
-                vars = key.replace("${", "")
-                vars = vars.replace("}", "")
-                sql = sql.replace(key, self.vars_map(vars, None))
+                var = key.replace("${", "")
+                var = vars.replace("}", "")
+                sql = sql.replace(key, self.vars_map(vars, vars_dict[var]))
         return sql
 
     def export_command(self, python_path, project_path, command_key, command_value, vars_dict):
