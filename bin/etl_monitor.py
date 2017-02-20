@@ -3,7 +3,6 @@
 
 import os
 import sys
-from configutil import ConfigUtil
 from dateutil import DateUtil
 from dbutil import DBUtil
 import json
@@ -17,7 +16,6 @@ sys.path.append(project_path)
 
 class ETLMonitor(object):
     def __init__(self):
-        self.config = ConfigUtil()
         self.dbUtil = DBUtil()
         self.dboption = DBOption()
 
