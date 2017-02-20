@@ -33,10 +33,10 @@ class ETLMonitor(object):
         main_phone = self.dboption.get_main_man_user("yxl")
         phone = main_phone['user_phone']
         data = {
-            "mobile": ",".join(phone),
+            "mobile": ",".join([phone]),
             "template": "super_template",
             "data": {
-                "content": today + " 运行完成" + str(row['job_count']) + " 任务"
+                "content": today + " 运行完成任务数:" + str(row['job_count'])
             }
         }
         host = self.config.get("sms.host")
