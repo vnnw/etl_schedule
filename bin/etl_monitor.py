@@ -9,6 +9,7 @@ from dbutil import DBUtil
 import json
 import MySQLdb
 import urllib2
+from dboption import DBOption
 
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_path)
@@ -18,6 +19,7 @@ class ETLMonitor(object):
     def __init__(self):
         self.config = ConfigUtil()
         self.dbUtil = DBUtil()
+        self.dboption = DBOption
 
     # today 共运行完成 xx job
     def run(self):
