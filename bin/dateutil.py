@@ -114,6 +114,11 @@ class DateUtil(object):
         yesterday = today - datetime.timedelta(days=1)
         return yesterday.strftime("%Y-%m")
 
+    @staticmethod
+    def get_current_month_first_day():
+        today = datetime.date.today()
+        current_month = today.strftime("%Y-%m")
+        return current_month + "-01"
 
 if __name__ == '__main__':
     now_time = datetime.datetime.now()

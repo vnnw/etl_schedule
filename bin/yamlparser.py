@@ -9,7 +9,6 @@ import yaml
 
 
 class YamlParser(object):
-
     def vars_map(self, key, value):
         if key == 'today':
             if value is None:
@@ -75,19 +74,35 @@ class YamlParser(object):
         return (vars, sqls, sql_paths)
 
     def parse_export(self, python_path, project_path, step_dict):
+        vars_dict = {}
+        if step_dict.has_key('vars'):
+            vars_dict = step_dict['vars']
+            if vars_dict is not None and len(vars_dict) > 0:
+                for (var_key, var_value_dict) in vars_dict.items():
+                    var_type = var_value_dict['type']
+                    if var_value_dict.has_key('value'):
+                        var_value = var_value_dict['value']
+                    map_value = self.vars_map(var_key, var_value)
+                    vars_dict[var_key] = map_value
         command_list = []
         if step_dict.has_key('ops'):
             ops_list = step_dict['ops']
             if ops_list and len(ops_list) > 0:
                 for ops_dict in ops_list:
                     for (command_key, command_value) in ops_dict.items():
-                        command_list.append(self.export_command(python_path, project_path, command_key, command_value))
+                        command_list.append(self.export_command(python_path,
+                                                                project_path,
+                                                                command_key,
+                                                                command_value,
+                                                                vars_dict))
         return command_list
 
     '''
     替换变量
     '''
-    def replace_sql_param(self,sql):
+
+    def replace_sql_param(self, sql, vars_dict):
+
         p = re.compile(r"\$\{[^\}\$\u0020]+\}")
         m = p.findall(sql)
         if m and len(m) > 0:
@@ -97,7 +112,7 @@ class YamlParser(object):
                 sql = sql.replace(key, self.vars_map(vars, None))
         return sql
 
-    def export_command(self, python_path, project_path, command_key, command_value):
+    def export_command(self, python_path, project_path, command_key, command_value, vars_dict):
         mysql2hive = project_path + '/export/mysql2hive.py'
         mongo2hive = project_path + '/export/mongo2hive.py'
         hive2mysql = project_path + '/export/hive2mysql.py'
@@ -130,7 +145,7 @@ class YamlParser(object):
             command_list.append(hive2mysql)
             if command_value.has_key("delete_sql") and command_value["delete_sql"]:
                 command_list.append("--sql")
-                sql = self.replace_sql_param(command_value["delete_sql"])
+                sql = self.replace_sql_param(command_value["delete_sql"], vars_dict)
                 command_list.append(sql)
             if command_value.has_key("query") and command_value["query"]:
                 command_list.append("--query")
