@@ -19,7 +19,7 @@ class ETLMonitor(object):
     def __init__(self):
         self.config = ConfigUtil()
         self.dbUtil = DBUtil()
-        self.dboption = DBOption
+        self.dboption = DBOption()
 
     # today 共运行完成 xx job
     def run(self):
