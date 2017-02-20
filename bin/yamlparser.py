@@ -74,16 +74,6 @@ class YamlParser(object):
         return (vars, sqls, sql_paths)
 
     def parse_export(self, python_path, project_path, step_dict):
-        vars_dict = {}
-        if step_dict.has_key('vars'):
-            vars_dict = step_dict['vars']
-            if vars_dict is not None and len(vars_dict) > 0:
-                for (var_key, var_value_dict) in vars_dict.items():
-                    var_type = var_value_dict['type']
-                    if var_value_dict.has_key('value'):
-                        var_value = var_value_dict['value']
-                    map_value = self.vars_map(var_key, var_value)
-                    vars_dict[var_key] = map_value
         command_list = []
         if step_dict.has_key('ops'):
             ops_list = step_dict['ops']
@@ -93,8 +83,7 @@ class YamlParser(object):
                         command_list.append(self.export_command(python_path,
                                                                 project_path,
                                                                 command_key,
-                                                                command_value,
-                                                                vars_dict))
+                                                                command_value))
         return command_list
 
     '''
@@ -102,17 +91,16 @@ class YamlParser(object):
     '''
 
     def replace_sql_param(self, sql, vars_dict):
-
         p = re.compile(r"\$\{[^\}\$\u0020]+\}")
         m = p.findall(sql)
         if m and len(m) > 0:
             for key in m:
                 var = key.replace("${", "")
-                var = vars.replace("}", "")
-                sql = sql.replace(key, self.vars_map(vars, vars_dict[var]))
+                var = var.replace("}", "")
+                sql = sql.replace(key, self.vars_map(var, vars_dict[var]['value']))
         return sql
 
-    def export_command(self, python_path, project_path, command_key, command_value, vars_dict):
+    def export_command(self, python_path, project_path, command_key, command_value):
         mysql2hive = project_path + '/export/mysql2hive.py'
         mongo2hive = project_path + '/export/mongo2hive.py'
         hive2mysql = project_path + '/export/hive2mysql.py'
@@ -143,13 +131,16 @@ class YamlParser(object):
             return command_list
         if command_key == 'hive2mysql':
             command_list.append(hive2mysql)
+            vars = {}
+            if command_value.has_key("vars") and command_value["vars"]:
+                vars = command_value["vars"]
             if command_value.has_key("delete_sql") and command_value["delete_sql"]:
                 command_list.append("--sql")
-                sql = self.replace_sql_param(command_value["delete_sql"], vars_dict)
+                sql = self.replace_sql_param(command_value["delete_sql"], vars)
                 command_list.append(sql)
             if command_value.has_key("query") and command_value["query"]:
                 command_list.append("--query")
-                hql = self.replace_sql_param(command_value["query"])
+                hql = self.replace_sql_param(command_value["query"], vars)
                 command_list.append(hql)
             command_list.append("--hive")
             command_list.append(command_value['hive_db'])
@@ -175,13 +166,14 @@ class YamlParser(object):
 
 # for test
 if __name__ == '__main__':
-    basepath = "../job/script/app"
-    for file in os.listdir(basepath):
-        print "------" + file
-        yaml_file = open(basepath + "/" + file, 'r')
+    basedir = "/Users/yxl/yunniao/source/beeper_data_warehouse/job/script"
+    yaml_files = ['app/app_bi_pack_report.yml']
+    for yaml_file in yaml_files:
+        yaml_file_handler = open(basedir + "/" + yaml_file, 'r')
         yaml_sql_path = "/job/sql"
         yaml_parser = YamlParser()
-        yaml_dict = yaml.safe_load(yaml_file)
+        yaml_dict = yaml.safe_load(yaml_file_handler)
+        print yaml_dict
         steps = yaml_dict['steps']
         if steps and len(steps) > 0:
             for step in steps:
