@@ -26,7 +26,7 @@ class ETLMonitor(object):
         sql = "select count(*) as job_count from t_etl_job where job_status = 'Done' and last_run_date = %s"
         cursor = connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(sql, (today,))
-        row = cursor.fetch_one
+        row = cursor.fetchone()
         print row['job_count']
         main_phone = self.dboption.get_main_man_user("yxl")
         phone = main_phone['user_phone']
