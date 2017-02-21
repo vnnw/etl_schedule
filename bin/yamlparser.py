@@ -97,7 +97,11 @@ class YamlParser(object):
             for key in m:
                 var = key.replace("${", "")
                 var = var.replace("}", "")
-                sql = sql.replace(key, self.vars_map(var, vars_dict[var]['value']))
+                default_value = None
+                print(vars_dict)
+                if vars_dict and vars_dict[var] and vars_dict[var].has_key('value'):
+                    default_value = str(vars_dict[var]['value'])
+                sql = sql.replace(key, self.vars_map(var, default_value))
         return sql
 
     def export_command(self, python_path, project_path, command_key, command_value):
@@ -167,7 +171,7 @@ class YamlParser(object):
 # for test
 if __name__ == '__main__':
     basedir = "/Users/yxl/yunniao/source/beeper_data_warehouse/job/script"
-    yaml_files = ['app/app_bi_pack_report.yml']
+    yaml_files = ['app/app_bi_flbp.yml']
     for yaml_file in yaml_files:
         yaml_file_handler = open(basedir + "/" + yaml_file, 'r')
         yaml_sql_path = "/job/sql"
