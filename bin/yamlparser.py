@@ -23,7 +23,7 @@ class YamlParser(object):
         elif key == 'intervalday':
             if value is None:
                 raise Exception("intervalday is none")
-            return DateUtil.get_interval_day_fmt(value, None)
+            return DateUtil.get_interval_day_fmt(int(value), None)
         elif key == 'lastMonth':
             if value is None:
                 return DateUtil.get_last_month()
@@ -170,10 +170,15 @@ class YamlParser(object):
 
 # for test
 if __name__ == '__main__':
+    # 需要跑全部的 yaml 文件解析测试
     basedir = "/Users/yxl/yunniao/source/beeper_data_warehouse/job/script"
-    yaml_files = ['app/app_bi_flbp.yml']
+    yaml_files = []
+    for subdir in os.listdir(basedir):
+        for file in os.listdir(basedir + "/" + subdir):
+            yaml_files.append(basedir + "/" + subdir + "/" + file)
+    yaml_files = [basedir + '/app/app_bi_flbp.yml']
     for yaml_file in yaml_files:
-        yaml_file_handler = open(basedir + "/" + yaml_file, 'r')
+        yaml_file_handler = open(yaml_file, 'r')
         yaml_sql_path = "/job/sql"
         yaml_parser = YamlParser()
         yaml_dict = yaml.safe_load(yaml_file_handler)
