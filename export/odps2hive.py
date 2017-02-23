@@ -236,8 +236,10 @@ def build_json_file(options, args):
 
     format_column_list = []  # 用来创建hive表的字段
     column_name_type_list = []  # hdfs 写入字段
+    column_name_list = [] # datax column
     for column in odps_columns:
         (name, ctype, comment) = column
+        column_name_list.append(name)
         format_column_list.append((name, ctype, comment))
         column_name_type_list.append({"name": name, "type": change_type(ctype)})
 
@@ -251,7 +253,7 @@ def build_json_file(options, args):
         "project": odps_db,
         "table": odps_table,
         "partition": [partition],
-        "column": [],
+        "column": column_name_list,
         "splitMode": "record",
         "odpsServer": "http://service.odps.aliyun.com/api"
     }
