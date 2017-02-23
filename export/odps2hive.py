@@ -146,12 +146,7 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         cursor.execute("drop table " + hive_table)
         tables.remove(hive_table)
 
-    partition_key = None
-    partition_value = None
-    if partition is not None:
-        partition_array = partition.split("=")
-        partition_key = partition_array[0].strip()
-        partition_value = partition_array[1].strip()
+    (partition_key, partition_value) = parse_partition(partition)
 
     if hive_table in tables:
         if partition_key is not None:  # 先删除再重建防止partition里面有数据
@@ -178,6 +173,16 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
             cursor.execute(
                     "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')")
     connection.close()
+
+
+def parse_partition(partition):
+    partition_key = None
+    partition_value = None
+    if partition is not None:
+        partition_array = partition.split("=")
+        partition_key = partition_array[0].strip()
+        partition_value = partition_array[1].strip()
+    return (partition_key, partition_value)
 
 
 '''
@@ -236,7 +241,7 @@ def build_json_file(options, args):
 
     format_column_list = []  # 用来创建hive表的字段
     column_name_type_list = []  # hdfs 写入字段
-    column_name_list = [] # datax column
+    column_name_list = []  # datax column
     for column in odps_columns:
         (name, ctype, comment) = column
         column_name_list.append(name)
@@ -245,6 +250,10 @@ def build_json_file(options, args):
 
     create_hive_table(hive_db, hive_table, format_column_list, partition)
 
+    (partition_key, partition_value) = parse_partition(partition)
+    partition_list = []
+    if partition_key:
+        partition_list.append(partition_key + "='" + partition_value + "'")
     access_id = config_util.get("odps_accessId")
     access_key = config_util.get("odps_accessKey")
     odps_dict = {
@@ -252,7 +261,7 @@ def build_json_file(options, args):
         "accessKey": access_key,
         "project": odps_db,
         "table": odps_table,
-        "partition": [partition],
+        "partition": partition_list,
         "column": column_name_list,
         "splitMode": "record",
         "odpsServer": "http://service.odps.aliyun.com/api"
@@ -301,6 +310,52 @@ def run_datax(json_file):
 检查导入的数据是否完整,总的记录条数差距 %10
 '''
 
+
+def run_check(options):
+    (odps_db, odps_table) = parse_odps_db(options.odps_db)
+    (partition_key, partition_value) = parse_partition(options.partition)
+    count_odps = "select count(*) as mcount from " + options.odps_db
+    if partition_key:
+        count_odps += " where " + options.partition
+
+    print "count_odps_sql:" + count_odps
+
+    odps = get_odps_connection(odps_db)
+    odps_count = 0
+    with odps.execute_sql(count_odps).open_reader() as reader:
+        for record in reader:
+            odps_count = record['mcount']
+
+    (hive_db, hive_table) = parse_hive_db(options.hive_db)
+    hive_connection = get_hive_connection(hive_db)
+    count_hive = "select count(*) as hcount from " + options.hive_db
+    partition = options.partition
+    if partition is not None and len(partition) > 0:
+        count_hive = count_hive + " where" + partition
+    print "count_hive_sql:" + count_hive
+    hive_cursor = hive_connection.cursor()
+    hive_cursor.execute(count_hive)
+    r2 = hive_cursor.fetchone()
+    hive_count = r2[0]
+    hive_connection.close()
+    diff_count = abs(hive_count - odps_count)
+    threshold = diff_count * 100 / hive_count
+    if threshold > 10:
+        print "导出的数据总数有差异 odps:" + options.mysql_db + ":" + str(odps_count) \
+              + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
+              + " threshold:" + str(threshold)
+        return 1
+    else:
+        print "导出的数据总数 odps:" + options.mysql_db + ":" + str(odps_count) \
+              + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
+              + " threshold:" + str(threshold)
+        return 0
+
+
+'''
+检查导入的数据是否完整,总的记录条数差距 %10
+'''
+
 if __name__ == "__main__":
     reload(sys)
     sys.setdefaultencoding('utf-8')
@@ -329,4 +384,5 @@ if __name__ == "__main__":
             print("datax load failed")
             sys.exit(1)
         else:
-            sys.exit(0)
+            complete = run_check(options)
+            sys.exit(complete)

@@ -29,6 +29,11 @@ def get_odps_table_columns() :
     for column in columns:
         print str(column.name) + "\t" + str(column.type).lower() + "\t" + str(column.comment)
 
+    sql = "select count(1) as mcount from driver_heartbeat.heartbeat"
+
+    with odps.execute_sql(sql).open_reader() as reader:
+        for record in reader:
+               print record
 
 if __name__ == '__main__':
     get_odps_table_columns()
