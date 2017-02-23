@@ -163,6 +163,8 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         create_column = []
         for column in column_list:
             (name, typestring, comment) = column
+            if partition_key and partition_key != name:  # 跳过分区日期
+                continue
             create_column.append(
                     "`" + str(name) + "` " + str(typestring).strip() + " comment \"" + str(comment).strip() + "\"")
         create_column_str = " , ".join(create_column)
