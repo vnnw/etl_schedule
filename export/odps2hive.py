@@ -315,8 +315,8 @@ def run_check(options):
     (odps_db, odps_table) = parse_odps_db(options.odps_db)
     (partition_key, partition_value) = parse_partition(options.partition)
     count_odps = "select count(*) as mcount from " + options.odps_db
-    if partition_key:
-        count_odps += " where " + options.partition
+    if partition_key and len(partition_key) > 0 :
+        count_odps += " where " + partition_key + "'" + partition_value + "'"
 
     print "count_odps_sql:" + count_odps
 
@@ -329,9 +329,8 @@ def run_check(options):
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
     hive_connection = get_hive_connection(hive_db)
     count_hive = "select count(*) as hcount from " + options.hive_db
-    partition = options.partition
-    if partition is not None and len(partition) > 0:
-        count_hive = count_hive + " where" + partition
+    if partition_key is not None and len(partition_key) > 0:
+        count_hive = count_hive + " where" + partition_key + "'" + partition_value + "'"
     print "count_hive_sql:" + count_hive
     hive_cursor = hive_connection.cursor()
     hive_cursor.execute(count_hive)
