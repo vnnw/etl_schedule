@@ -85,11 +85,8 @@ class ProcessMonitor(object):
                     self.send_msg(ip, host, process)
 
     def run(self):
-        while True:
             print "------------" + str(datetime.datetime.now()) + "---------------"
             self.monitor()
-            time.sleep(300)
-
 
 if __name__ == '__main__':
     monitor = ProcessMonitor()
