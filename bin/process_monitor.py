@@ -16,7 +16,7 @@ class ProcessMonitor(object):
         self.config = []
         # self.config.append("ip,host,namenode|datanode")
 
-        self.config.append("192.168.0.75,vm-ha-dispatch75.yn.com,scheduler|executor|HiveServer2")
+        self.config.append("192.168.0.75,vm-ha-dispatch75.yn.com,scheduler.py|executor.py|HiveServer2")
         self.config.append("192.168.0.30,ha-master30.yn.com,namenode|resourcemanager")
         self.config.append("192.168.0.31,ha-secondrymaster31.yn.com,namenode")
         self.config.append("192.168.0.32,ha-data32.yn.com,datanode|nodemanager|journalnode")
