@@ -51,8 +51,15 @@ def yaml2dict(yaml_file):
     return yaml.load(open(yaml_file, 'r'))
 
 
+class DatetimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.strftime('%Y-%m-%dT%H:%M:%SZ')
+        return json.JSONEncoder.default(self, obj)
+
+
 def dict2json(dict):
-    jsonStr = json.dumps(dict, indent=4, sort_keys=False, ensure_ascii=False)
+    jsonStr = json.dumps(dict, indent=4, sort_keys=False, ensure_ascii=False, cls=DatetimeEncoder)
     jsonStr = jsonStr.replace("\\\\", "\\")
     return jsonStr
 
