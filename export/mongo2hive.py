@@ -53,8 +53,8 @@ def yaml2dict(yaml_file):
 
 class DatetimeEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, datetime):
-            return obj.strftime('%Y-%m-%dT%H:%M:%SZ')
+        if isinstance(obj, datetime.datetime):
+            return "ISODate('" + obj.strftime('%Y-%m-%dT%H:%M:%SZ') + "')"
         return json.JSONEncoder.default(self, obj)
 
 
