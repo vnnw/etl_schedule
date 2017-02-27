@@ -12,9 +12,28 @@ import subprocess
 import yaml
 import pymongo
 import pyhs2
+import datetime
 from bin.configutil import ConfigUtil
 
 config_util = ConfigUtil()
+
+
+def get_today():
+    today = datetime.datetime.now()
+    today = today.replace(hour=0, minute=0, second=0)
+    return today
+
+
+def get_yesterday():
+    today = datetime.datetime.now()
+    today = today.replace(hour=0, minute=0, second=0)
+    return today - datetime.timedelta(days=1)
+
+
+def get_interval_day(interval):
+    today = datetime.datetime.now()
+    today = today.replace(hour=0, minute=0, second=0)
+    return today - datetime.timedelta(days=interval)
 
 
 def get_option_parser():
@@ -79,6 +98,36 @@ def parse_mongo(mongo_db_collection):
     return (mongo_db, collection)
 
 
+def replace_query(query):
+    query_dict = json.loads(query)
+    for key, value in query_dict.items():
+        if value:
+            print value
+            for param_key, param_value in value.items():
+                print param_key, param_value
+                if param_value == '${yesterday}':
+                    value[param_key] = get_yesterday()
+                if param_value == '${today}':
+                    value[param_key] = get_today()
+    return query_dict
+
+
+def read_yaml_schema(options):
+    yaml_path = config_util.get("yaml.path")
+    yaml_file = options.yaml_file
+    yaml_dict = yaml2dict(yaml_path + "/" + yaml_file)
+    # 替换 query 里面的参数
+    parameter_dict = yaml_dict["job"]["content"][0]["reader"]["parameter"]
+    query = None
+    if parameter_dict and parameter_dict.has_key("query"):
+        query = parameter_dict["query"]
+        query = replace_query(query)
+
+    if query:
+        parameter_dict["query"] = query
+    return yaml_dict
+
+
 def build_json_file(options, args):
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
 
@@ -89,26 +138,32 @@ def build_json_file(options, args):
     partition_key = None
     partition_value = None
     if partition is not None:
+        connection = get_hive_connection(hive_db)
+        cursor = connection.cursor()
+        cursor.execute("use " + hive_db)
         partition_array = partition.split("=")
         partition_key = partition_array[0].strip()
         partition_value = partition_array[1].strip()
+        if partition_key is not None:  # 先删除再重建防止partition里面有数据
+            cursor.execute(
+                    "alter table " + hive_table + " drop partition(" + partition_key + "='" + partition_value + "')")
+            cursor.execute(
+                    "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')")
+        connection.close()
 
-    defaultFS = config_util.get("hdfs.uri")
+    default_fs = config_util.get("hdfs.uri")
     hive_path = "/user/hive/warehouse/" + hive_db + ".db/" + hive_table
     if partition is None:
-        remove_dir(defaultFS + hive_path)
-        create_dir(defaultFS + hive_path)
+        remove_dir(default_fs + hive_path)
+        create_dir(default_fs + hive_path)
     else:
         hive_path = hive_path + "/" + partition_value
 
-    yaml_path = config_util.get("yaml.path")
-    yaml_file = options.yaml_file
-    yaml_dict = yaml2dict(yaml_path + "/" + yaml_file)
-
-    yaml_dict["job"]["content"][0]["reader"]["parameter"]["dbName"] = mongo_db
-    yaml_dict["job"]["content"][0]["reader"]["parameter"]["collectionName"] = collection
-
-    columns = yaml_dict["job"]["content"][0]["reader"]["parameter"]["column"]
+    yaml_dict = read_yaml_schema(options)
+    parameter_dict = yaml_dict["job"]["content"][0]["reader"]["parameter"]
+    parameter_dict["dbName"] = mongo_db
+    parameter_dict["collectionName"] = collection
+    columns = parameter_dict["column"]
 
     hive_columns = []
     for column in columns:
@@ -117,14 +172,14 @@ def build_json_file(options, args):
     mongo_host = config_util.get("mongo." + mongo_db + ".host")
     mongo_port = config_util.get("mongo." + mongo_db + ".port")
     address = [mongo_host + ":" + mongo_port]
-    yaml_dict["job"]["content"][0]["reader"]["parameter"]["address"] = address
+    parameter_dict["address"] = address
 
     yaml_dict["job"]["content"][0]["writer"] = {}  # set {}
 
     writer_dict = {
         "name": "hdfswriter",
         "parameter": {
-            "defaultFS": defaultFS,
+            "defaultFS": default_fs,
             "fileType": "orc",
             "path": hive_path,
             "fileName": hive_table,
@@ -135,8 +190,8 @@ def build_json_file(options, args):
     }
     yaml_dict["job"]["content"][0]["writer"] = writer_dict
     json_str = dict2json(yaml_dict)
-    (filepath, tempfilename) = os.path.split(yaml_file)
-    (shotname, extension) = os.path.splitext(tempfilename)
+    (file_path, temp_filename) = os.path.split(options.yaml_file)
+    (shotname, extension) = os.path.splitext(temp_filename)
     datax_json_base_path = config_util.get("datax.json.path")
     if not os.path.exists(datax_json_base_path):
         os.makedirs(datax_json_base_path)
@@ -180,7 +235,15 @@ def run_check(options):
     mongo_connection = get_mongo_connection(mongo_db)
     connection_db = mongo_connection[mongo_db]
     mongo_collection = connection_db[collection]
-    mongo_count = mongo_collection.find().count()
+    # 需要获取 yaml 文件中的 query 条件
+    yaml_dict = read_yaml_schema(options)
+    parameter_dict = yaml_dict["job"]["content"][0]["reader"]["parameter"]
+    query = parameter_dict["query"]
+    mongo_count = -1
+    if query:
+        mongo_count = mongo_collection.find(query).count()
+    else:
+        mongo_count = mongo_collection.find().count()
     mongo_connection.close()
     hive_connection = get_hive_connection(hive_db)
     count_hive = "select count(*) as hcount from " + options.hive_db
@@ -197,13 +260,13 @@ def run_check(options):
     threshold = diff_count * 100 / hive_count
     if threshold > 5:
         print "导出的数据总数有差异 mongodb:" + options.mongo_db + ":" + str(mongo_count) \
-                + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
-                + " threshold:" + str(threshold)
+              + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
+              + " threshold:" + str(threshold)
         return 1
     else:
         print "导出的数据总数 mongodb:" + options.mongo_db + ":" + str(mongo_count) \
-                + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
-                + " threshold:" + str(threshold)
+              + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
+              + " threshold:" + str(threshold)
         return 0
 
 

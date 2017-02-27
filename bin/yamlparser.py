@@ -99,7 +99,7 @@ class YamlParser(object):
                 var = var.replace("}", "")
                 default_value = None
                 print(vars_dict)
-                if vars_dict and vars_dict[var] and vars_dict[var].has_key('value'):
+                if vars_dict and vars_dict[var] and vars_dict[var].has_key('value') and vars_dict[var]['value']:
                     default_value = str(vars_dict[var]['value'])
                 sql = sql.replace(key, self.vars_map(var, default_value))
         return sql
@@ -132,6 +132,14 @@ class YamlParser(object):
             command_list.append(command_value["mongo_db"])
             command_list.append("--to")
             command_list.append(command_value["hive_db"])
+            vars = {}
+            if command_value.has_key("vars") and command_value["vars"]:
+                vars = command_value["vars"]
+            if command_value.has_key('partition') and command_value['partition']:
+                command_list.append("--partition")
+                partition_value = command_value['partition'].strip()
+                partition_value = self.replace_sql_param(partition_value, vars)
+                command_list.append(partition_value)
             return command_list
         if command_key == 'hive2mysql':
             command_list.append(hive2mysql)
@@ -176,7 +184,7 @@ if __name__ == '__main__':
     for subdir in os.listdir(basedir):
         for file in os.listdir(basedir + "/" + subdir):
             yaml_files.append(basedir + "/" + subdir + "/" + file)
-    yaml_files = [basedir + '/app/app_bi_flbp.yml']
+    #yaml_files = [basedir + '/app/app_bi_flbp.yml']
     for yaml_file in yaml_files:
         yaml_file_handler = open(yaml_file, 'r')
         yaml_sql_path = "/job/sql"
