@@ -51,15 +51,8 @@ def yaml2dict(yaml_file):
     return yaml.load(open(yaml_file, 'r'))
 
 
-class DatetimeEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return "ISODate('" + obj.strftime('%Y-%m-%dT%H:%M:%SZ') + "')"
-        return json.JSONEncoder.default(self, obj)
-
-
 def dict2json(dict):
-    jsonStr = json.dumps(dict, indent=4, sort_keys=False, ensure_ascii=False, cls=DatetimeEncoder)
+    jsonStr = json.dumps(dict, indent=4, sort_keys=False, ensure_ascii=False)
     jsonStr = jsonStr.replace("\\\\", "\\")
     return jsonStr
 
@@ -113,9 +106,9 @@ def replace_query(query):
             for param_key, param_value in value.items():
                 print param_key, param_value
                 if param_value == '${yesterday}':
-                    value[param_key] = get_yesterday()
+                    value[param_key] = {"$date": int(get_yesterday().strftime("%s")) * 1000}
                 if param_value == '${today}':
-                    value[param_key] = get_today()
+                    value[param_key] = {"$date": int(get_today().strftime("%s")) * 1000}
     return query_dict
 
 
