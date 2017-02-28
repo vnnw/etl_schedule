@@ -28,7 +28,7 @@ class RunCommand(object):
     def get_python_bin(self):
         python_path = self.config.get("python.home")
         if python_path is None or len(python_path) == 0:
-             raise Exception("can't find python.home")
+            raise Exception("can't find python.home")
         python_bin = python_path + "/bin/python"
         return python_bin
 
@@ -90,7 +90,7 @@ class RunCommand(object):
         code = child.wait()
         return code
 
-    def run_yaml(self,yaml_file):
+    def run_yaml(self, yaml_file, init_day=None):
         yaml_sql_path = self.config.get("job.script.path") + "/sql"
         yaml_parser = YamlParser()
         yaml_file = open(yaml_file, 'r')
@@ -100,7 +100,7 @@ class RunCommand(object):
             for step in steps:
                 step_type = step['type']
                 if step_type == 'hive':
-                    (vars, sqls, sql_paths) = yaml_parser.parse_hive(step)
+                    (vars, sqls, sql_paths) = yaml_parser.parse_hive(step, init_day)
                     if sqls or sql_paths:
                         hive_util = HiveUtil()
                         hive_util.add_vars(vars)
@@ -110,7 +110,7 @@ class RunCommand(object):
                         if code != 0:
                             return 1
                 if step_type == 'export':
-                    command_list = yaml_parser.parse_export(self.get_python_bin(), project_path, step)
+                    command_list = yaml_parser.parse_export(self.get_python_bin(), project_path, step, init_day)
                     if command_list and len(command_list) > 0:
                         for command in command_list:
                             code = self.run_single_command(command)

@@ -6,9 +6,12 @@ import traceback
 import sys
 from configutil import ConfigUtil
 from runcommand import RunCommand
+from optparse import OptionParser
 
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_path)
+import yaml
+from dateutil import DateUtil
 
 
 class RunYaml(object):
@@ -16,7 +19,21 @@ class RunYaml(object):
         self.config = ConfigUtil()
         pass
 
-    def run_command(self, path):
+    def option_parser(self):
+        usage = "usage: %prog [options] arg1 arg2"
+
+        parser = OptionParser(usage=usage)
+
+        parser.add_option("-s", "--start", dest="start", action="store", type="string",
+                          help="start date yyyy-MM-dd")
+        parser.add_option("-e", "--end", dest="end", action="store", type="string",
+                          help="end date yyyy-MM-dd")
+        parser.add_option("-p", "--path", dest="path", action="store", type="string",
+                          help="yaml file path")
+
+        return parser
+
+    def run_command(self, path, start, end):
         try:
             print("脚本位置:" + path)
 
@@ -25,8 +42,19 @@ class RunYaml(object):
 
             extend = os.path.splitext(path)[1]
             if extend == ".yml":
+
+                if start is None:
+                    start = DateUtil.parse_date(DateUtil.get_now_fmt())
+                if end is None:
+                    end = DateUtil.parse_date(DateUtil.get_now_fmt())
+
                 runCommand = RunCommand()
-                return runCommand.run_yaml(path)
+                run_code = []
+                for p_day in DateUtil.get_list_day(start, end):
+                    print "运行时设置的日期:", p_day
+                    code = runCommand.run_yaml(path, p_day)
+                    run_code.append(code)
+                print "运行结果:", ",".join(run_code)
             else:
                 raise Exception("当前只支持 yml 脚本")
         except Exception, e:
@@ -38,15 +66,14 @@ class RunYaml(object):
 if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    path = sys.argv[1]
-    if path is None or len(path) == 0:
-        print("无法获取path")
-        exit(-1)
+
     runCommand = RunYaml()
-    code = runCommand.run_command(path)
-    if code == 0:
-        print "脚本运行完成"
-        sys.exit(0)
-    else:
-        print "脚本运行失败"
-        sys.exit(1)
+    optParser = runCommand.option_parser()
+    options, args = optParser.parse_args(sys.argv[1:])
+
+    if options.path is None:
+        print("require yaml file")
+        optParser.print_help()
+        sys.exit(-1)
+
+    runCommand.run_command(options.path, options.start, options.end)

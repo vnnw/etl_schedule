@@ -9,34 +9,35 @@ import yaml
 
 
 class YamlParser(object):
-    def vars_map(self, key, value):
+    def vars_map(self, key, value, init_day):
+        init_date = DateUtil.parse_date(init_day, None)
         if key == 'today':
             if value is None:
-                return DateUtil.get_now_fmt(None)
+                return DateUtil.get_now_fmt(None, init_date)
             else:
                 return value
         elif key == 'yesterday':
             if value is None:
-                return DateUtil.get_yesterday_fmt(None)
+                return DateUtil.get_yesterday_fmt(None, init_date)
             else:
                 return value
         elif key == 'intervalday':
             if value is None:
-                raise Exception("intervalday is none")
-            return DateUtil.get_interval_day_fmt(int(value), None)
+                raise Exception("interval day is none")
+            return DateUtil.get_interval_day_fmt(int(value), None, init_date)
         elif key == 'lastMonth':
             if value is None:
-                return DateUtil.get_last_month()
+                return DateUtil.get_last_month(init_date)
             else:
                 return value
         elif key == 'currentMonth':
             if value is None:
-                return DateUtil.get_current_month()
+                return DateUtil.get_current_month(init_date)
             else:
                 return value
         elif key == 'yesterdayMonth':
             if value is None:
-                return DateUtil.get_yesterday_month()
+                return DateUtil.get_yesterday_month(init_date)
             else:
                 return value
         else:
@@ -46,7 +47,7 @@ class YamlParser(object):
     返回 包含sql,vars
     '''
 
-    def parse_hive(self, step_dict):
+    def parse_hive(self, step_dict, init_day):
         vars = []
         sqls = []
         sql_paths = []
@@ -57,7 +58,7 @@ class YamlParser(object):
                     var_type = var_value_dict['type']
                     if var_value_dict.has_key('value'):
                         var_value = var_value_dict['value']
-                    map_value = self.vars_map(var_key, var_value)
+                    map_value = self.vars_map(var_key, var_value, init_day)
                     if var_type == "string":
                         vars.append("set hivevar:" + str(var_key) + "='" + str(map_value) + "';")
                     else:
@@ -73,7 +74,7 @@ class YamlParser(object):
                         sql_paths.append(sql_dict_value['path'])
         return (vars, sqls, sql_paths)
 
-    def parse_export(self, python_path, project_path, step_dict):
+    def parse_export(self, python_path, project_path, step_dict, init_day):
         command_list = []
         if step_dict.has_key('ops'):
             ops_list = step_dict['ops']
@@ -83,14 +84,14 @@ class YamlParser(object):
                         command_list.append(self.export_command(python_path,
                                                                 project_path,
                                                                 command_key,
-                                                                command_value))
+                                                                command_value, init_day))
         return command_list
 
     '''
     替换变量
     '''
 
-    def replace_sql_param(self, sql, vars_dict):
+    def replace_sql_param(self, sql, vars_dict, init_day):
         p = re.compile(r"\$\{[^\}\$\u0020]+\}")
         m = p.findall(sql)
         if m and len(m) > 0:
@@ -101,10 +102,10 @@ class YamlParser(object):
                 print(vars_dict)
                 if vars_dict and vars_dict[var] and vars_dict[var].has_key('value') and vars_dict[var]['value']:
                     default_value = str(vars_dict[var]['value'])
-                sql = sql.replace(key, self.vars_map(var, default_value))
+                sql = sql.replace(key, self.vars_map(var, default_value, init_day))
         return sql
 
-    def export_command(self, python_path, project_path, command_key, command_value):
+    def export_command(self, python_path, project_path, command_key, command_value, init_day):
         mysql2hive = project_path + '/export/mysql2hive.py'
         mongo2hive = project_path + '/export/mongo2hive.py'
         hive2mysql = project_path + '/export/hive2mysql.py'
@@ -139,7 +140,7 @@ class YamlParser(object):
             if command_value.has_key('partition') and command_value['partition']:
                 command_list.append("--partition")
                 partition_value = command_value['partition'].strip()
-                partition_value = self.replace_sql_param(partition_value, vars)
+                partition_value = self.replace_sql_param(partition_value, vars, init_day)
                 command_list.append(partition_value)
             return command_list
         if command_key == 'hive2mysql':
@@ -149,11 +150,11 @@ class YamlParser(object):
                 vars = command_value["vars"]
             if command_value.has_key("delete_sql") and command_value["delete_sql"]:
                 command_list.append("--sql")
-                sql = self.replace_sql_param(command_value["delete_sql"], vars)
+                sql = self.replace_sql_param(command_value["delete_sql"], vars, init_day)
                 command_list.append(sql)
             if command_value.has_key("query") and command_value["query"]:
                 command_list.append("--query")
-                hql = self.replace_sql_param(command_value["query"], vars)
+                hql = self.replace_sql_param(command_value["query"], vars, init_day)
                 command_list.append(hql)
             command_list.append("--hive")
             command_list.append(command_value['hive_db'])
@@ -193,7 +194,7 @@ class YamlParser(object):
             if command_value.has_key('partition') and command_value['partition']:
                 command_list.append("--partition")
                 partition_value = command_value['partition'].strip()
-                partition_value = self.replace_sql_param(partition_value, vars)
+                partition_value = self.replace_sql_param(partition_value, vars, init_day)
                 command_list.append(partition_value)
             return command_list
 
@@ -206,7 +207,8 @@ if __name__ == '__main__':
     for subdir in os.listdir(basedir):
         for file in os.listdir(basedir + "/" + subdir):
             yaml_files.append(basedir + "/" + subdir + "/" + file)
-    # yaml_files = [basedir + '/app/app_bi_flbp.yml']
+    yaml_files = [basedir + '/app/app_bi_flbp.yml']
+    init_day = '2016-01-03'
     for yaml_file in yaml_files:
         yaml_file_handler = open(yaml_file, 'r')
         yaml_sql_path = "/job/sql"
@@ -218,12 +220,12 @@ if __name__ == '__main__':
             for step in steps:
                 step_type = step['type']
                 if step_type == 'hive':
-                    (vars, sqls, sql_paths) = yaml_parser.parse_hive(step)
+                    (vars, sqls, sql_paths) = yaml_parser.parse_hive(step, init_day)
                     print "vars:", len(vars), vars
                     print "sqls:", len(sqls), sqls
                     print "sql_paths", len(sql_paths), sql_paths
                 if step_type == 'export':
-                    command_list = yaml_parser.parse_export("", "", step)
+                    command_list = yaml_parser.parse_export("", "", step, init_day)
                     if command_list and len(command_list) > 0:
                         for command in command_list:
                             print command

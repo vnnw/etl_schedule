@@ -44,7 +44,6 @@ def get_interval_day(interval, tz=None):
 
 def replace_query_utc(obj):
     for param_key, param_value in obj.items():
-        print param_key, param_value
         if param_value == '${yesterday}':
             obj[param_key] = get_yesterday("utc")
         if param_value == '${today}':
@@ -59,7 +58,6 @@ def json2dict_utc(json_str):
 
 def replace_query(obj):
     for param_key, param_value in obj.items():
-        print param_key, param_value
         if param_value == '${yesterday}':
             obj[param_key] = {"$date": int(get_yesterday().strftime("%s")) * 1000}
         if param_value == '${today}':
