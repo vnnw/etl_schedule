@@ -340,12 +340,12 @@ def run_check(options):
     diff_count = abs(hive_count - odps_count)
     threshold = diff_count * 100 / hive_count
     if threshold > 10:
-        print "导出的数据总数有差异 odps:" + options.mysql_db + ":" + str(odps_count) \
+        print "导出的数据总数有差异 odps:" + options.odps_db + ":" + str(odps_count) \
               + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
               + " threshold:" + str(threshold)
         return 1
     else:
-        print "导出的数据总数 odps:" + options.mysql_db + ":" + str(odps_count) \
+        print "导出的数据总数 odps:" + options.odps_db + ":" + str(odps_count) \
               + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
               + " threshold:" + str(threshold)
         return 0
