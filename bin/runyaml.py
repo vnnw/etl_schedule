@@ -44,8 +44,12 @@ class RunYaml(object):
 
                 if start is None:
                     start = DateUtil.parse_date(DateUtil.get_now_fmt())
+                else:
+                    start = DateUtil.parse_date(start)
                 if end is None:
                     end = DateUtil.parse_date(DateUtil.get_now_fmt())
+                else:
+                    end = DateUtil.parse_date(end)
 
                 runCommand = RunCommand()
                 run_code = []
