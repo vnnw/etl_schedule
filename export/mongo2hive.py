@@ -142,15 +142,6 @@ def read_yaml_schema(options):
     yaml_path = config_util.get("yaml.path")
     yaml_file = options.yaml_file
     yaml_dict = yaml2dict(yaml_path + "/" + yaml_file)
-    # 替换 query 里面的参数
-    parameter_dict = yaml_dict["job"]["content"][0]["reader"]["parameter"]
-    query = None
-    if parameter_dict and parameter_dict.has_key("query"):
-        query = parameter_dict["query"]
-        query = json2dict(query)
-
-    if query:
-        parameter_dict["query"] = query
     return yaml_dict
 
 
@@ -186,7 +177,15 @@ def build_json_file(options, args):
         hive_path = hive_path + "/" + partition_value
 
     yaml_dict = read_yaml_schema(options)
+    # 替换 query 里面的参数
     parameter_dict = yaml_dict["job"]["content"][0]["reader"]["parameter"]
+    query = None
+    if parameter_dict and parameter_dict.has_key("query"):
+        query = parameter_dict["query"]
+        query = json2dict(query)
+
+    if query:
+        parameter_dict["query"] = query
     parameter_dict["dbName"] = mongo_db
     parameter_dict["collectionName"] = collection
     columns = parameter_dict["column"]
@@ -263,11 +262,15 @@ def run_check(options):
     mongo_collection = connection_db[collection]
     # 需要获取 yaml 文件中的 query 条件
     yaml_dict = read_yaml_schema(options)
+    # 替换 query 里面的参数
     parameter_dict = yaml_dict["job"]["content"][0]["reader"]["parameter"]
-    query = parameter_dict["query"]
+    query = None
+    if parameter_dict and parameter_dict.has_key("query"):
+        query = parameter_dict["query"]
+        query = json2dict_utc(query)
     mongo_count = -1
     if query:
-        query = json2dict_utc(query)
+        print "query:", query
         mongo_count = mongo_collection.find(query).count()
     else:
         mongo_count = mongo_collection.find().count()
