@@ -52,7 +52,7 @@ class RunYaml(object):
                 for p_day in DateUtil.get_list_day(start, end):
                     print "运行时设置的日期:", p_day
                     code = runCommand.run_yaml(path, p_day)
-                    run_code.append(code)
+                    run_code.append(str(code))
                 code_str = ",".join(run_code)
                 print "运行结果:", code_str
             else:
