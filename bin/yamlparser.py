@@ -109,6 +109,7 @@ class YamlParser(object):
         mongo2hive = project_path + '/export/mongo2hive.py'
         hive2mysql = project_path + '/export/hive2mysql.py'
         hive2excel = project_path + '/export/hive2excel.py'
+        odps2hive = project_path + '/export/odps2hive.py'
         command_list = []
         command_list.append(python_path)
         if command_key == 'mysql2hive':
@@ -174,6 +175,27 @@ class YamlParser(object):
             command_list.append("--receivers")
             command_list.append(command_value['email_receivers'])
             return command_list
+        if command_key == 'odps2hive':
+            command_list.append(odps2hive)
+            command_list.append("--from")
+            command_list.append(command_value['odps_db'])
+            command_list.append("--to")
+            command_list.append(command_value['hive_db'])
+            if command_value.has_key("include_columns") and command_value['include_columns']:
+                command_list.append("--columns")
+                command_list.append(command_value['include_columns'])
+            if command_value.has_key("exclude_columns") and command_value['exclude_columns']:
+                command_list.append("--exclude-columns")
+                command_list.append(command_value['exclude_columns'])
+            vars = {}
+            if command_value.has_key("vars") and command_value["vars"]:
+                vars = command_value["vars"]
+            if command_value.has_key('partition') and command_value['partition']:
+                command_list.append("--partition")
+                partition_value = command_value['partition'].strip()
+                partition_value = self.replace_sql_param(partition_value, vars)
+                command_list.append(partition_value)
+            return command_list
 
 
 # for test
@@ -184,7 +206,7 @@ if __name__ == '__main__':
     for subdir in os.listdir(basedir):
         for file in os.listdir(basedir + "/" + subdir):
             yaml_files.append(basedir + "/" + subdir + "/" + file)
-    #yaml_files = [basedir + '/app/app_bi_flbp.yml']
+    # yaml_files = [basedir + '/app/app_bi_flbp.yml']
     for yaml_file in yaml_files:
         yaml_file_handler = open(yaml_file, 'r')
         yaml_sql_path = "/job/sql"

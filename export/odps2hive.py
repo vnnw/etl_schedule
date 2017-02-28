@@ -315,7 +315,7 @@ def run_check(options):
     (odps_db, odps_table) = parse_odps_db(options.odps_db)
     (partition_key, partition_value) = parse_partition(options.partition)
     count_odps = "select count(*) as mcount from " + options.odps_db
-    if partition_key and len(partition_key) > 0 :
+    if partition_key and len(partition_key) > 0:
         count_odps += " where " + partition_key + "='" + partition_value + "'"
 
     print "count_odps_sql:" + count_odps
