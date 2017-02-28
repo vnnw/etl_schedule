@@ -18,22 +18,62 @@ from bin.configutil import ConfigUtil
 config_util = ConfigUtil()
 
 
-def get_today():
+def get_today(tz=None):
     today = datetime.datetime.now()
     today = today.replace(hour=0, minute=0, second=0)
+    if tz == "utc":
+        today = today - datetime.timedelta(hours=8)
     return today
 
 
-def get_yesterday():
+def get_yesterday(tz=None):
     today = datetime.datetime.now()
     today = today.replace(hour=0, minute=0, second=0)
+    if tz == "utc":
+        today = today - datetime.timedelta(hours=8)
     return today - datetime.timedelta(days=1)
 
 
-def get_interval_day(interval):
+def get_interval_day(interval, tz=None):
     today = datetime.datetime.now()
     today = today.replace(hour=0, minute=0, second=0)
+    if tz == "utc":
+        today = today - datetime.timedelta(hours=8)
     return today - datetime.timedelta(days=interval)
+
+
+def replace_query_utc(obj):
+    for param_key, param_value in obj.items():
+        print param_key, param_value
+        if param_value == '${yesterday}':
+            obj[param_key] = get_yesterday("utc")
+        if param_value == '${today}':
+            obj[param_key] = get_today("utc")
+    return obj
+
+
+def json2dict_utc(json_str):
+    json_dict = json.loads(json_str, object_hook=replace_query_utc)
+    return json_dict
+
+
+def replace_query(obj):
+    for param_key, param_value in obj.items():
+        print param_key, param_value
+        if param_value == '${yesterday}':
+            obj[param_key] = {"$date": int(get_yesterday().strftime("%s")) * 1000}
+        if param_value == '${today}':
+            obj[param_key] = {"$date": int(get_today().strftime("%s")) * 1000}
+    return obj
+
+
+def json2dict(json_str):
+    json_dict = json.loads(json_str, object_hook=replace_query)
+    return json_dict
+
+
+def get_datetime_from_timestamp(timestamp):
+    return datetime.datetime.fromtimestamp(timestamp / 1000)
 
 
 def get_option_parser():
@@ -98,20 +138,6 @@ def parse_mongo(mongo_db_collection):
     return (mongo_db, collection)
 
 
-def replace_query(query):
-    query_dict = json.loads(query)
-    for key, value in query_dict.items():
-        if value:
-            print value
-            for param_key, param_value in value.items():
-                print param_key, param_value
-                if param_value == '${yesterday}':
-                    value[param_key] = {"$date": int(get_yesterday().strftime("%s")) * 1000}
-                if param_value == '${today}':
-                    value[param_key] = {"$date": int(get_today().strftime("%s")) * 1000}
-    return query_dict
-
-
 def read_yaml_schema(options):
     yaml_path = config_util.get("yaml.path")
     yaml_file = options.yaml_file
@@ -121,7 +147,7 @@ def read_yaml_schema(options):
     query = None
     if parameter_dict and parameter_dict.has_key("query"):
         query = parameter_dict["query"]
-        query = replace_query(query)
+        query = json2dict(query)
 
     if query:
         parameter_dict["query"] = query
@@ -241,6 +267,7 @@ def run_check(options):
     query = parameter_dict["query"]
     mongo_count = -1
     if query:
+        query = json2dict_utc(query)
         mongo_count = mongo_collection.find(query).count()
     else:
         mongo_count = mongo_collection.find().count()
