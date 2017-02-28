@@ -245,7 +245,7 @@ def build_json_file(options, args):
     for column in odps_columns:
         (name, ctype, comment) = column
         column_name_list.append(name)
-        format_column_list.append((name, ctype, comment))
+        format_column_list.append((name, change_type(ctype), comment))
         column_name_type_list.append({"name": name, "type": change_type(ctype)})
 
     create_hive_table(hive_db, hive_table, format_column_list, partition)
