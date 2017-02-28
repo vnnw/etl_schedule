@@ -194,7 +194,7 @@ def change_type(ctype):
     ctype = ctype.lower()
     if ctype in ("varchar", "char"):
         ctype = "string"
-    if ctype in "datetime":
+    if ctype in ("datetime",):
         ctype = "timestamp"
     if ctype == "text":
         ctype = "string"
