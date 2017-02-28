@@ -29,11 +29,14 @@ def get_odps_table_columns() :
     for column in columns:
         print str(column.name) + "\t" + str(column.type).lower() + "\t" + str(column.comment)
 
-    sql = "select count(1) as mcount from driver_heartbeat.heartbeat"
+    sql = "select count(1) as mcount from driver_heartbeat.heartbeat where beat_date='2017-01-02'"
 
+    odps_count = 0
     with odps.execute_sql(sql).open_reader() as reader:
         for record in reader:
-               print record
+               odps_count = record[0]
+    print odps_count
+    print int(odps_count.decode()) - 200
 
 if __name__ == '__main__':
     get_odps_table_columns()
