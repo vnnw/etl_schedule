@@ -10,7 +10,6 @@ from optparse import OptionParser
 
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_path)
-import yaml
 from dateutil import DateUtil
 
 
@@ -54,7 +53,8 @@ class RunYaml(object):
                     print "运行时设置的日期:", p_day
                     code = runCommand.run_yaml(path, p_day)
                     run_code.append(code)
-                print "运行结果:", ",".join(run_code)
+                code_str = ",".join(run_code)
+                print "运行结果:", code_str
             else:
                 raise Exception("当前只支持 yml 脚本")
         except Exception, e:
