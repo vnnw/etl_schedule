@@ -25,18 +25,20 @@ class ETLMonitor(object):
     def run(self):
         today = DateUtil.get_now_fmt(None)
         connection = self.dbUtil.get_connection()
-        sql = "select count(*) as job_count from t_etl_job where job_status = 'Done' and last_run_date = %s"
+        sql = "select job_status,count(*) as job_count from t_etl_job where last_start_time >= %s group by job_status"
         cursor = connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(sql, (today,))
-        row = cursor.fetchone()
-        print row['job_count']
+        rows = cursor.fetchall()
+        msg = []
+        for row in rows:
+            msg.append(str(row['job_status']) + ":" + str(row['job_count']))
         main_phone = self.dboption.get_main_man_user("yxl")
         phone = main_phone['user_phone']
         data = {
             "mobile": ",".join([phone]),
             "template": "super_template",
             "data": {
-                "content": today + " 运行完成任务数:" + str(row['job_count'])
+                "content": today + " 运行日志信息:" + str(",".join(msg))
             }
         }
         host = self.config.get("sms.host")
