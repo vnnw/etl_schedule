@@ -43,7 +43,7 @@ class ETLMonitor(object):
             "mobile": ",".join([phone]),
             "template": "super_template",
             "data": {
-                "content": today + " 运行日志信息:" + str(",\n".join(msg))
+                "content": today + " 运行日志信息:\n" + str(",\n".join(msg))
             }
         }
         host = self.config.get("sms.host")
