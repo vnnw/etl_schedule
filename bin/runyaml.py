@@ -32,7 +32,7 @@ class RunYaml(object):
 
         return parser
 
-    def run_command(self, path, start, end):
+    def run_command(self, path, p_day):
         try:
             print("脚本位置:" + path)
 
@@ -41,24 +41,9 @@ class RunYaml(object):
 
             extend = os.path.splitext(path)[1]
             if extend == ".yml":
-
-                if start is None:
-                    start = DateUtil.parse_date(DateUtil.get_now_fmt())
-                else:
-                    start = DateUtil.parse_date(start)
-                if end is None:
-                    end = DateUtil.parse_date(DateUtil.get_now_fmt())
-                else:
-                    end = DateUtil.parse_date(end)
-
-                runCommand = RunCommand()
-                run_code = []
-                for p_day in DateUtil.get_list_day(start, end):
-                    print "运行时设置的日期:", p_day
-                    code = runCommand.run_yaml(path, p_day)
-                    run_code.append(str(code))
-                code_str = ",".join(run_code)
-                print "运行结果:", code_str
+                run_command = RunCommand()
+                code = run_command.run_yaml(path, p_day)
+                return code
             else:
                 raise Exception("当前只支持 yml 脚本")
         except Exception, e:
@@ -71,8 +56,8 @@ if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
 
-    runCommand = RunYaml()
-    optParser = runCommand.option_parser()
+    run_yaml = RunYaml()
+    optParser = run_yaml.option_parser()
     options, args = optParser.parse_args(sys.argv[1:])
 
     if options.path is None:
@@ -80,4 +65,21 @@ if __name__ == '__main__':
         optParser.print_help()
         sys.exit(-1)
 
-    runCommand.run_command(options.path, options.start, options.end)
+    start = options.start
+    end = options.end
+    if start is None:
+        start = DateUtil.parse_date(DateUtil.get_now_fmt())
+    else:
+        start = DateUtil.parse_date(start)
+    if end is None:
+        end = DateUtil.parse_date(DateUtil.get_now_fmt())
+    else:
+        end = DateUtil.parse_date(end)
+
+    run_code = []
+    for p_day in DateUtil.get_list_day(start, end):
+        print "运行时设置的日期:", p_day
+        code = run_yaml.run_command(options.path, p_day)
+        run_code.append(str(code))
+    code_str = ",".join(run_code)
+    print "运行结果:", code_str
