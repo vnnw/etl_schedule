@@ -41,6 +41,9 @@ class ETLMonitor(object):
         phones = set()
         for main_phone in main_phones:
             phones.add(main_phone['user_phone'])
+        if phones or len(phones) == 0:
+            print("没有配置短信发送phone")
+            return
         data = {
             "mobile": ",".join(phones),
             "template": "super_template",
