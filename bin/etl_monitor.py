@@ -37,10 +37,12 @@ class ETLMonitor(object):
         for row in rows:
             msg.append(str(row['job_status']) + ":" + str(row['job_count']))
         connection.close()
-        main_phone = self.dboption.get_main_man_user("yxl")
-        phone = main_phone['user_phone']
+        main_phones = self.dboption.get_main_man_by_role("admin")
+        phones = set()
+        for main_phone in main_phones:
+            phones.add(main_phone['user_phone'])
         data = {
-            "mobile": ",".join([phone]),
+            "mobile": ",".join(phones),
             "template": "super_template",
             "data": {
                 "content": today + " 运行日志信息:\n" + str(",\n".join(msg))

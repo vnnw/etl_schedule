@@ -358,6 +358,20 @@ class DBOption(object):
             self.logger.error(traceback.format_exc())
             return None
 
+    def get_main_man_by_role(self,role_name):
+        sql = "select user_phone from t_etl_job_monitor where enable=0 and role = %s"
+        try:
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute(sql, (role_name,))
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            return rows
+        except Exception, e:
+            self.logger.error(traceback.format_exc())
+            return None
+
     def save_time_trigger_job(self, job_name, trigger_type, day, hour, minute, interval, man, script):
         try:
             etl_job_sql = "insert into t_etl_job(job_name,job_status,job_script,job_trigger,main_man)  \
