@@ -90,6 +90,8 @@ class ETLUtil(object):
                                                                    script)
                     if code == 1:
                         print("添加依赖触发Job 成功")
+                    else:
+                        print("添加依赖触发 Job 失败")
 
     def check_script_path(self, path):
         exists = os.path.exists(path)

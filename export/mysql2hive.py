@@ -354,6 +354,8 @@ def run_check(options):
     hive_count = r2[0]
     hive_connection.close()
     diff_count = abs(hive_count - mysql_count)
+    if diff_count == 0:
+        return 0
     threshold = diff_count * 100 / hive_count
     if threshold > 10:
         print "导出的数据总数有差异 mongodb:" + options.mysql_db + ":" + str(mysql_count) \
