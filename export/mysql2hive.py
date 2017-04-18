@@ -206,7 +206,7 @@ def change_type(ctype):
         ctype = "string"
     if ctype == "longtext":
         ctype = "string"
-    if ctype == "long":
+    if ctype in ("long", "mediumint", "tinyint"):
         ctype = "bigint"
     if ctype == "decimal":
         ctype = "double"
