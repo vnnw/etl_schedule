@@ -1,0 +1,73 @@
+job:
+  content:
+  - reader:
+      name: mysqlreader
+      parameter:
+        connection:
+        - jdbcUrl:
+          - 'jdbc:mysql://${mysql_ip}:${mysql_port}/${mysql_database}'
+          table:
+          - trans_driver_bid
+        username: '${mysql_username}'
+        password: '${mysql_password}'
+        where: ''
+        column:
+        - id
+        - trans_task_id
+        - driver_id
+        - status
+        - dprice
+        - slogan
+        - modify_count
+        - comment
+        - created_at
+        - updated_at
+        - dd_id
+        - is_first_onboard
+        - first_onboard_rate
+        - car_team_mgr_id
+        - is_ignore_restrict
+        - car_id
+        - car_num
+        - car_team_id
+        - end_date
+        - insurance_type
+        - insurance_begun_at
+        - select_driver_time
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper_tf_mysql_trans_driver_bid_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - id
+        - trans_task_id
+        - driver_id
+        - status
+        - dprice
+        - slogan
+        - modify_count
+        - comment_
+        - created_at
+        - updated_at
+        - dd_id
+        - is_first_onboard
+        - first_onboard_rate
+        - car_team_mgr_id
+        - is_ignore_restrict
+        - car_id
+        - car_num
+        - car_team_id
+        - end_date
+        - insurance_type
+        - insurance_begun_at
+        - select_driver_time
+  setting:
+    speed:
+      channel: '1'

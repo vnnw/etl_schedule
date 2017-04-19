@@ -1,0 +1,63 @@
+job:
+  content:
+  - reader:
+      name: mysqlreader
+      parameter:
+        connection:
+        - jdbcUrl:
+          - 'jdbc:mysql://${mysql_ip}:${mysql_port}/${mysql_database}'
+          table:
+          - accident_detail
+        username: '${mysql_username}'
+        password: '${mysql_password}'
+        where: ''
+        column:
+        - id
+        - accident_id
+        - sales_punish_price
+        - bid_mgr_punish_price
+        - fcc_punish_price
+        - fcc_mgr_punish_price
+        - dd_punish_price
+        - comment
+        - investigation_record
+        - investigation_result
+        - urgent_improve
+        - remark
+        - create_time
+        - update_time
+        - receiver_nick
+        - receiver_bank
+        - receiver_payment_price
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_sac_mysql_accident_detail_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - id
+        - accident_id
+        - sales_punish_price
+        - bid_mgr_punish_price
+        - fcc_punish_price
+        - fcc_mgr_punish_price
+        - dd_punish_price
+        - comment_
+        - investigation_record
+        - investigation_result
+        - urgent_improve
+        - remark
+        - create_time
+        - update_time
+        - receiver_nick
+        - receiver_bank
+        - receiver_payment_price
+  setting:
+    speed:
+      channel: '1'

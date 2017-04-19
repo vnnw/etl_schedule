@@ -1,0 +1,51 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: driver_cert_check_logs
+        column:
+        - name: dcclid
+          type: long
+        - name: did
+          type: long
+        - name: check_user_name
+          type: string
+        - name: check_user_id
+          type: long
+        - name: approve_item
+          type: string
+        - name: operating
+          type: string
+        - name: memo
+          type: string
+        - name: cts
+          type: date
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_driver_cert_check_logs_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - dcclid
+        - did
+        - check_user_name
+        - check_user_id
+        - approve_item
+        - operating
+        - memo
+        - cts
+  setting:
+    speed:
+      channel: '1'

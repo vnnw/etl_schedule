@@ -1,0 +1,63 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: business_units
+        column:
+        - name: buid
+          type: long
+        - name: name
+          type: string
+        - name: desc
+          type: string
+        - name: parent_id
+          type: long
+        - name: children_ids
+          type: array
+          splitter: ','
+        - name: lead
+          type: string
+        - name: assis
+          type: array
+          splitter: ','
+        - name: members
+          type: array
+          splitter: ','
+        - name: cts
+          type: date
+        - name: adcid
+          type: long
+        - name: type
+          type: long
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_business_unit_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - buid
+        - name
+        - desc_
+        - parent_id
+        - children_ids
+        - lead
+        - assis
+        - members
+        - cts
+        - adcid
+        - type
+  setting:
+    speed:
+      channel: '1'

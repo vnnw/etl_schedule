@@ -1,0 +1,63 @@
+job:
+  content:
+  - reader:
+      name: mysqlreader
+      parameter:
+        connection:
+        - jdbcUrl:
+          - 'jdbc:mysql://${mysql_ip}:${mysql_port}/${mysql_database}'
+          table:
+          - accident_extra_info
+        username: '${mysql_username}'
+        password: '${mysql_password}'
+        where: ''
+        column:
+        - id
+        - accident_id
+        - customer_price_per_day
+        - driver_price_per_day
+        - adc_id
+        - sales_id
+        - bid_mgr_id
+        - fcc_id
+        - fcc_mgr_id
+        - dd_id
+        - task_id
+        - event_id
+        - warehouse_id
+        - create_time
+        - update_time
+        - cargo_insurance_price
+        - driver_insurance_money
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_sac_mysql_accident_extra_info_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - id
+        - accident_id
+        - customer_price_per_day
+        - driver_price_per_day
+        - adc_id
+        - sales_id
+        - bid_mgr_id
+        - fcc_id
+        - fcc_mgr_id
+        - dd_id
+        - task_id
+        - event_id
+        - warehouse_id
+        - create_time
+        - update_time
+        - cargo_insurance_price
+        - driver_insurance_money
+  setting:
+    speed:
+      channel: '1'

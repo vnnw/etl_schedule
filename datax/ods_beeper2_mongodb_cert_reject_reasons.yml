@@ -1,0 +1,48 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: cert_reject_reasons
+        column:
+        - name: crid
+          type: long
+        - name: cert_target
+          type: long
+        - name: cert_item
+          type: long
+        - name: cert_sub_item
+          type: long
+        - name: reject_reason
+          type: string
+        - name: last_operator_id
+          type: long
+        - name: is_removed
+          type: boolean
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_cert_reject_reasons_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - crid
+        - cert_target
+        - cert_item
+        - cert_sub_item
+        - reject_reason
+        - last_operator_id
+        - is_removed
+  setting:
+    speed:
+      channel: '1'

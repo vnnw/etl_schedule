@@ -1,0 +1,67 @@
+job:
+  content:
+  - reader:
+      name: mysqlreader
+      parameter:
+        connection:
+        - jdbcUrl:
+          - 'jdbc:mysql://${mysql_ip}:${mysql_port}/${mysql_database}'
+          table:
+          - driver_training
+        username: '${mysql_username}'
+        password: '${mysql_password}'
+        where: ''
+        column:
+        - id
+        - driver_id
+        - driver_name
+        - management_area_id
+        - management_area_name
+        - quality_manager_id
+        - quality_manager_name
+        - join_training_time
+        - join_training_reason
+        - course_id
+        - course_name
+        - test_id
+        - test_name
+        - is_test
+        - final_test_time
+        - final_test_score
+        - is_pass
+        - created_at
+        - updated_at
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mysql_driver_training_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - id
+        - driver_id
+        - driver_name
+        - management_area_id
+        - management_area_name
+        - quality_manager_id
+        - quality_manager_name
+        - join_training_time
+        - join_training_reason
+        - course_id
+        - course_name
+        - test_id
+        - test_name
+        - is_test
+        - final_test_time
+        - final_test_score
+        - is_pass
+        - created_at
+        - updated_at
+  setting:
+    speed:
+      channel: '1'

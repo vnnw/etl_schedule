@@ -1,0 +1,148 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: fcc_clock_in_records
+        query: ''
+        column:
+        - name: fcrid
+          type: long
+        - name: fccid
+          type: long
+        - name: fcc_quality_mgr_id
+          type: long
+        - name: quality_mgr
+          type: string
+        - name: salary_base_daily
+          type: long
+        - name: date
+          type: string
+        - name: task_count
+          type: long
+        - name: ci_st
+          type: long
+        - name: ci_ip
+          type: string
+        - name: ci_warehouse_addr
+          type: string
+        - name: ci_ts
+          type: date
+        - name: ci_cuid
+          type: long
+        - name: ci_sales
+          type: string
+        - name: ci_adcid
+          type: long
+        - name: ci_wid
+          type: long
+        - name: ci_wjw.0
+          type: double
+        - name: ci_wjw.1
+          type: double
+        - name: ci_jw.0
+          type: double
+        - name: ci_jw.1
+          type: double
+        - name: ci_is_amend
+          type: boolean
+        - name: ci_amend_origin
+          type: string
+        - name: co_st
+          type: long
+        - name: co_ip
+          type: string
+        - name: co_warehouse_addr
+          type: string
+        - name: co_ts
+          type: date
+        - name: co_cuid
+          type: long
+        - name: co_wid
+          type: long
+        - name: co_wjw.0
+          type: double
+        - name: co_wjw.1
+          type: double
+        - name: co_jw.0
+          type: double
+        - name: co_jw.1
+          type: double
+        - name: co_is_amend
+          type: boolean
+        - name: co_amend_origin
+          type: string
+        - name: first_e_wh_arrival_hm
+          type: string
+        - name: last_e_wh_arrival_hm
+          type: string
+        - name: st
+          type: long
+        - name: cts
+          type: date
+        - name: operator
+          type: string
+        - name: operator_id
+          type: long
+        - name: operator_ts
+          type: date
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_fcc_clock_in_record_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - fcrid
+        - fccid
+        - fcc_quality_mgr_id
+        - quality_mgr
+        - salary_base_daily
+        - date_
+        - task_count
+        - ci_st
+        - ci_ip
+        - ci_warehouse_addr
+        - ci_ts
+        - ci_cuid
+        - ci_sales
+        - ci_adcid
+        - ci_wid
+        - ci_warehouse_longitude
+        - ci_warehouse_latitude
+        - ci_longitude
+        - ci_latitude
+        - ci_is_amend
+        - ci_amend_origin
+        - co_st
+        - co_ip
+        - co_warehouse_addr
+        - co_ts
+        - co_cuid
+        - co_wid
+        - co_warehouse_longitude
+        - co_warehouse_latitude
+        - co_longitude
+        - co_latitude
+        - co_is_amend
+        - co_amend_origin
+        - first_e_wh_arrival_hm
+        - last_e_wh_arrival_hm
+        - st
+        - cts
+        - operator
+        - operator_id
+        - operator_ts
+  setting:
+    speed:
+      channel: '1'
