@@ -4,3 +4,8 @@ pip install apscheduler==3.0.5
 
 
 export ETL_PATH=/home/hadoop/etl_schedule/etl
+
+
+python schedule.py &
+
+python executor.py & 
