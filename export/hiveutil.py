@@ -40,7 +40,7 @@ class HiveUtil:
         sqls = ""
         for line in sql_handler.readlines():
             sqls += line
-        self.add_sqls(sqls.split(";"))
+        self.add_sqls((sqls,))
         sql_handler.flush()
         sql_handler.close()
 
