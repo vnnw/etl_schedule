@@ -125,9 +125,14 @@ class YamlParser(object):
             if command_value.has_key("exclude_columns") and command_value['exclude_columns']:
                 command_list.append("--exclude-columns")
                 command_list.append(command_value['exclude_columns'])
+            vars = {}
+            if command_value.has_key("vars") and command_value["vars"]:
+                vars = command_value["vars"]
             if command_value.has_key("partition") and command_value['partition']:
                 command_list.append("--partition")
-                command_list.append(command_value['partition'])
+                partition_value = command_value['partition']
+                partition_value = self.replace_sql_param(partition_value, vars, init_day)
+                command_list.append(partition_value)
             return command_list
         if command_key == 'mongo2hive':
             command_list.append(mongo2hive)
@@ -200,7 +205,6 @@ class YamlParser(object):
                 partition_value = self.replace_sql_param(partition_value, vars, init_day)
                 command_list.append(partition_value)
             return command_list
-
 
 # for test
 if __name__ == '__main__':

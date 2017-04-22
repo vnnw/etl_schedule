@@ -271,7 +271,7 @@ def build_json_file(options, args):
 
     partition = options.partition
     if partition is not None:
-        partition = replace_partition(partition.strip())
+        partition = partition.strip()
 
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
 
@@ -332,23 +332,6 @@ def run_datax(json_file):
 
 
 '''
-用来替换 partition 中的参数
-'''
-
-
-def replace_partition(partition):
-    partition_key = None
-    partition_value = None
-    if partition is not None:
-        partition_array = partition.split("=")
-        partition_key = partition_array[0].strip()
-        partition_value = partition_array[1].strip()
-    if partition_value == "yesterday":
-        partition_value = DateUtil.get_yesterday_fmt()
-    return partition_key + "=" + partition_value
-
-
-'''
 检查导入的数据是否完整,总的记录条数差距 %10
 '''
 
@@ -369,7 +352,6 @@ def run_check(options):
     count_hive = "select count(*) as hcount from " + options.hive_db
     partition = options.partition
     if partition is not None and len(partition) > 0:
-        partition = replace_partition(partition.strip())
         partition_key = None
         partition_value = None
         if partition is not None:
