@@ -129,11 +129,13 @@ def get_mysql_table_columns(columns, exclude_columns, mysql_db, mysql_table):
 def get_hive_connection(db):
     host = config_util.get("hive.host")
     port = config_util.get("hive.port")
+    username = config_util.get("hive.username")
+    password = config_util.get("hvie.password")
     connection = pyhs2.connect(host=host,
                                port=int(port),
                                authMechanism="PLAIN",
-                               user="hadoop",
-                               password="hadoop",
+                               user=username,
+                               password=password,
                                database=db)
     return connection
 
@@ -180,6 +182,7 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         create_sql_str = "create table " + hive_table + " ( " + create_column_str + " )"
         if partition_key is not None:
             create_sql_str += " partitioned by(" + partition_key + " string)"
+        create_sql_str += " comment xxxx"
         create_sql_str += " STORED AS ORC"
         print(create_sql_str)
         cursor.execute(create_sql_str)
@@ -348,7 +351,7 @@ def run_check(options):
     count_hive = "select count(*) as hcount from " + options.hive_db
     partition = options.partition
     if partition is not None and len(partition) > 0:
-        count_hive = count_hive + " where" + partition
+        count_hive = count_hive + " where " + partition
     print "count_hive_sql:" + count_hive
     hive_cursor = hive_connection.cursor()
     hive_cursor.execute(count_hive)
