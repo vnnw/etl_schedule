@@ -125,6 +125,9 @@ class YamlParser(object):
             if command_value.has_key("exclude_columns") and command_value['exclude_columns']:
                 command_list.append("--exclude-columns")
                 command_list.append(command_value['exclude_columns'])
+            if command_value.has_key("partition") and command_value['partition']:
+                command_list.append("--partition")
+                command_list.append(command_value['partition'])
             return command_list
         if command_key == 'mongo2hive':
             command_list.append(mongo2hive)
