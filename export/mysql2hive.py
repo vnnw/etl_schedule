@@ -11,6 +11,7 @@ import MySQLdb
 import subprocess
 import pyhs2
 from bin.configutil import ConfigUtil
+from bin.dateutil import DateUtil
 
 config_util = ConfigUtil()
 
@@ -171,7 +172,7 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
             cursor.execute(
                     "alter table " + hive_table + " drop partition(" + partition_key + "='" + partition_value + "')")
             cursor.execute(
-                "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')")
+                    "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')")
     else:
         create_column = []
         for column in column_list:
@@ -182,13 +183,13 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         create_sql_str = "create table " + hive_table + " ( " + create_column_str + " )"
         if partition_key is not None:
             create_sql_str += " partitioned by(" + partition_key + " string)"
-        #create_sql_str += " comment xxxx"
+        # create_sql_str += " comment xxxx"
         create_sql_str += " STORED AS ORC"
         print(create_sql_str)
         cursor.execute(create_sql_str)
         if partition_key is not None:  # 添加新的分区
             cursor.execute(
-                "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')")
+                    "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')")
     connection.close()
 
 
@@ -213,7 +214,7 @@ def change_type(ctype):
         ctype = "bigint"
     if ctype == "decimal":
         ctype = "double"
-    if ctype == "date": # 转换类型
+    if ctype == "date":  # 转换类型
         ctype = "string"
     return ctype
 
@@ -270,7 +271,7 @@ def build_json_file(options, args):
 
     partition = options.partition
     if partition is not None:
-        partition = partition.strip()
+        partition = replace_partition(partition.strip())
 
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
 
@@ -331,6 +332,23 @@ def run_datax(json_file):
 
 
 '''
+用来替换 partition 中的参数
+'''
+
+
+def replace_partition(partition):
+    partition_key = None
+    partition_value = None
+    if partition is not None:
+        partition_array = partition.split("=")
+        partition_key = partition_array[0].strip()
+        partition_value = partition_array[1].strip()
+    if partition_value == "yesterday":
+        partition_value = DateUtil.get_yesterday_fmt()
+    return partition_key + "=" + partition_value
+
+
+'''
 检查导入的数据是否完整,总的记录条数差距 %10
 '''
 
@@ -351,13 +369,14 @@ def run_check(options):
     count_hive = "select count(*) as hcount from " + options.hive_db
     partition = options.partition
     if partition is not None and len(partition) > 0:
-         partition_key = None
-         partition_value = None
-         if partition is not None:
+        partition = replace_partition(partition.strip())
+        partition_key = None
+        partition_value = None
+        if partition is not None:
             partition_array = partition.split("=")
             partition_key = partition_array[0].strip()
             partition_value = partition_array[1].strip()
-         count_hive = count_hive + " where " + partition_key + "='" + partition_value + "'"
+        count_hive = count_hive + " where " + partition_key + "='" + partition_value + "'"
     print "count_hive_sql:" + count_hive
     hive_cursor = hive_connection.cursor()
     hive_cursor.execute(count_hive)
@@ -372,13 +391,13 @@ def run_check(options):
     threshold = diff_count * 100 / hive_count
     if threshold > 10:
         print "导出的数据总数有差异 mongodb:" + options.mysql_db + ":" + str(mysql_count) \
-                + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
-                + " threshold:" + str(threshold)
+              + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
+              + " threshold:" + str(threshold)
         return 1
     else:
         print "导出的数据总数 mongodb:" + options.mysql_db + ":" + str(mysql_count) \
-                + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
-                + " threshold:" + str(threshold)
+              + " hive:" + options.hive_db + ":" + str(hive_count) + " 差值:" + str(diff_count) \
+              + " threshold:" + str(threshold)
         return 0
 
 
