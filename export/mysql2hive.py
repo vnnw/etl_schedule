@@ -182,7 +182,7 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         create_sql_str = "create table " + hive_table + " ( " + create_column_str + " )"
         if partition_key is not None:
             create_sql_str += " partitioned by(" + partition_key + " string)"
-        create_sql_str += " comment xxxx"
+        #create_sql_str += " comment xxxx"
         create_sql_str += " STORED AS ORC"
         print(create_sql_str)
         cursor.execute(create_sql_str)
@@ -359,6 +359,8 @@ def run_check(options):
     hive_count = r2[0]
     hive_connection.close()
     diff_count = abs(hive_count - mysql_count)
+    print "mysql_count:" + str(mysql_count)
+    print "hive_count:" + str(hive_count)
     if diff_count == 0:
         return 0
     threshold = diff_count * 100 / hive_count
