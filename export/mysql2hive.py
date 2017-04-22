@@ -357,7 +357,7 @@ def run_check(options):
             partition_array = partition.split("=")
             partition_key = partition_array[0].strip()
             partition_value = partition_array[1].strip()
-         count_hive = count_hive + " where " + partition_key + "'" + partition_value + "'"
+         count_hive = count_hive + " where " + partition_key + "='" + partition_value + "'"
     print "count_hive_sql:" + count_hive
     hive_cursor = hive_connection.cursor()
     hive_cursor.execute(count_hive)
