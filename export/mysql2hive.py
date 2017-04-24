@@ -156,9 +156,12 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
     for table in result:
         tables.add(table[0])
 
-    if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
-        cursor.execute("drop table " + hive_table)
-        tables.remove(hive_table)
+    if hive_table not in tables:
+        raise Exception(hive_table + "不存在,需要先建表")
+
+    #if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
+    #    cursor.execute("drop table " + hive_table)
+    #    tables.remove(hive_table)
 
     partition_key = None
     partition_value = None
@@ -180,16 +183,16 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
             create_column.append(
                     "`" + str(name) + "` " + str(typestring).strip() + " comment \"" + str(comment).strip() + "\"")
         create_column_str = " , ".join(create_column)
-        create_sql_str = "create table " + hive_table + " ( " + create_column_str + " )"
+        create_sql_str = "create external table if not exists" + hive_table + " ( " + create_column_str + " )"
         if partition_key is not None:
             create_sql_str += " partitioned by(" + partition_key + " string)"
         # create_sql_str += " comment xxxx"
         create_sql_str += " STORED AS ORC"
         print(create_sql_str)
-        cursor.execute(create_sql_str)
+        # cursor.execute(create_sql_str)
         if partition_key is not None:  # 添加新的分区
-            cursor.execute(
-                    "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')")
+            partition_sql =  "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')"
+            #cursor.execute(partition_sql)
     connection.close()
 
 
@@ -404,6 +407,9 @@ if __name__ == "__main__":
             sys.exit(1)
         if options.hive_db is None:
             print("require hive database.table")
+            sys.exit(1)
+        if options.include_columns is None or len(options.include_columns) == 0:
+            print("require mysql include_columns")
             sys.exit(1)
         jsonFile = build_json_file(options, args)
         code = run_datax(jsonFile)
