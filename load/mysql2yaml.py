@@ -53,7 +53,22 @@ def yaml2dict(yaml_file):
     return yaml.load(open(yaml_file, 'r'))
 
 
-def run(mysql_db):
+def write2File(file, sql):
+    file_handler = open(file, 'w')
+    file_handler.writelines(sql)
+    file_handler.flush()
+    file_handler.close
+
+
+def sort_dict(di):
+    return [(k, di[k]) for k in sorted(di.keys())]
+
+
+def gen_yaml():
+    pass
+
+
+def run(mysql_db, sql_dir, yaml_dir):
     connection = get_mysql_connection(mysql_db)
     tables = get_tables(connection)
     for table in tables:
@@ -68,7 +83,8 @@ def run(mysql_db):
             ctype = typestring.split("(")[0]
             include_column.append(name)
             create_column.append(
-                    "    `" + str(name) + "` " + str(change_type(ctype)).strip() + " comment \"" + str(comment).strip() + "\"")
+                    "    `" + str(name) + "` " + str(change_type(ctype)).strip() + " comment \"" + str(
+                        comment).strip() + "\"")
         create_column_str = ",\n".join(create_column)
         create_sql_str = "create external table if not exists " + table_name + " ( \n" + create_column_str + " )"
         create_sql_str += "\ncomment \"xxxx\""

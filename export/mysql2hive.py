@@ -408,8 +408,8 @@ if __name__ == "__main__":
         if options.hive_db is None:
             print("require hive database.table")
             sys.exit(1)
-        if options.include_columns is None or len(options.include_columns) == 0:
-            print("require mysql include_columns")
+        if options.columns is None or len(options.columns) == 0:
+            print("require mysql columns")
             sys.exit(1)
         jsonFile = build_json_file(options, args)
         code = run_datax(jsonFile)
