@@ -276,6 +276,11 @@ def remove_dir(dir_name):
     os.system("hadoop fs -rmr " + dir_name)
 
 
+def create_dir(dir_name):
+    print "创建目录:" + str(dir_name)
+    os.system("hadoop fs -mkdir -p " + dir_name)
+
+
 def build_json_file(options, args):
     json_data = read_base_json()
 
