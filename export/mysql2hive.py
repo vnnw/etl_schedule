@@ -314,6 +314,7 @@ def build_json_file(options, args):
         hive_table_path = hive_table_path + "/" + partition
 
     remove_dir(hive_table_path)
+    create_dir(hive_table_path)
 
     writer_parameter_dict = {
         "column": column_name_type_list,
