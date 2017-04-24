@@ -118,7 +118,7 @@ def get_mysql_table_columns(columns, exclude_columns, mysql_db, mysql_table):
         for column_name in column_array:
             column_name = column_name.strip()
             if column_name not in table_columns:
-                print("column:" + column_name + "not in table:" + str(table_columns))
+                print("column:" + column_name + " not in table:" + str(table_columns))
                 sys.exit(-1)
             else:
                 column = table_column_dict[column_name]
