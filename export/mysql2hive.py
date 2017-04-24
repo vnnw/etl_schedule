@@ -159,7 +159,7 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
     if hive_table not in tables:
         raise Exception(hive_table + "不存在,需要先建表")
 
-    #if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
+    # if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
     #    cursor.execute("drop table " + hive_table)
     #    tables.remove(hive_table)
 
@@ -191,8 +191,8 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         print(create_sql_str)
         # cursor.execute(create_sql_str)
         if partition_key is not None:  # 添加新的分区
-            partition_sql =  "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')"
-            #cursor.execute(partition_sql)
+            partition_sql = "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')"
+            # cursor.execute(partition_sql)
     connection.close()
 
 
@@ -213,8 +213,10 @@ def change_type(ctype):
         ctype = "string"
     if ctype == "longtext":
         ctype = "string"
-    if ctype in ("long", "mediumint", "tinyint"):
+    if ctype in ("long", "int"):
         ctype = "bigint"
+    if ctype in ("mediumint", "smallint"):
+        ctype = "int"
     if ctype == "decimal":
         ctype = "double"
     if ctype == "date":  # 转换类型
@@ -269,6 +271,11 @@ def process_mysql(options):
     return (format_column_list, column_name_type_list, query_sql)
 
 
+def remove_dir(dir_name):
+    print "删除 HDFS 目录:" + str(dir_name)
+    os.system("hadoop fs -rmr " + dir_name)
+
+
 def build_json_file(options, args):
     json_data = read_base_json()
 
@@ -297,9 +304,11 @@ def build_json_file(options, args):
     }
     json_data["job"]["content"][0]["reader"]["parameter"] = readerParameterDict
 
-    hive_table_path = "/user/hive/warehouse/" + hive_db + ".db/" + hive_table
+    hive_table_path = config_util.get("hive.warehouse") + "/" + hive_db + ".db/" + hive_table
     if partition is not None:
         hive_table_path = hive_table_path + "/" + partition
+
+    remove_dir(hive_table_path)
 
     writer_parameter_dict = {
         "column": column_name_type_list,

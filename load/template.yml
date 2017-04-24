@@ -1,0 +1,9 @@
+steps:
+  - type: export
+    ops:
+      - mysql2hive:
+          mysql_db:
+          hive_db:
+          include_columns:
+          exclude_columns:
+          partition: p_day=${yesterday}
