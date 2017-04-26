@@ -151,12 +151,19 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         # create_sql_str += " comment xxxx"
         create_sql_str += " STORED AS ORC"
         print(create_sql_str)
-        #cursor.execute(create_sql_str)
+        cursor.execute(create_sql_str)
+        write2File("ods_" + hive_db + "_" + hive_table + ".sql", create_sql_str)
         if partition_key is not None:  # 添加新的分区
             partition_sql = "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')"
             # cursor.execute(partition_sql)
     connection.close()
 
+def write2File(file_name,sql):
+    base_dir = "/home/yunniao/sql"
+    file_handler = open(base_dir + "/" + file_name,'w')
+    file_handler.writelines(sql)
+    file_handler.flush()
+    file_handler.close()
 
 def parse_mysql_db(mysql_db_table):
     mysql_db_table_array = mysql_db_table.split(".")

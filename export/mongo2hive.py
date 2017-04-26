@@ -98,10 +98,12 @@ def dict2json(dict):
 
 
 def remove_dir(dir_name):
+    print "删除 HDFS 目录:" + str(dir_name)
     os.system("hadoop fs -rmr " + dir_name)
 
 
 def create_dir(dir_name):
+    print "创建 HDFS 目录:" + str(dir_name)
     os.system("hadoop fs -mkdir -p " + dir_name)
 
 
@@ -150,12 +152,13 @@ def build_json_file(options, args):
         connection.close()
 
     default_fs = config_util.get("hdfs.uri")
-    hive_path = "/user/hive/warehouse/" + hive_db + ".db/" + hive_table
-    if partition is None:
-        remove_dir(default_fs + hive_path)
-        create_dir(default_fs + hive_path)
-    else:
+    hive_path = config_util.get("hive.warehouse") + "/" + hive_db + ".db/" + hive_table
+
+    if partition is not None:
         hive_path = hive_path + "/" + partition_value
+
+    remove_dir(default_fs + hive_path)
+    create_dir(default_fs + hive_path)
 
     yaml_dict = read_yaml_schema(options)
     # 替换 query 里面的参数
