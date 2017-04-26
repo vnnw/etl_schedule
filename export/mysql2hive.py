@@ -300,7 +300,7 @@ def run_check(options):
     mysql_count = r1['mcount']
     mysql_connection.close()
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
-    hive_connection = Connection.get_mongo_connection(config_util,hive_db)
+    hive_connection = Connection.get_hive_connection(config_util,hive_db)
     count_hive = "select count(*) as hcount from " + options.hive_db
     partition = options.partition
     if partition is not None and len(partition) > 0:
