@@ -3,8 +3,6 @@
 import os
 import sys
 import MySQLdb
-import yaml
-from collections import OrderedDict
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -58,7 +56,7 @@ def write2File(file, sql):
 
 def gen_yaml(db, table, columns, yaml_dir):
     file_handler = open("template.yml", "r")
-    file_handler_write = open(yaml_dir + "/" + "ods_" + db + "_" + table + ".yml", "w")
+    file_handler_write = open(yaml_dir + "/" + "ods_" + db + "__" + table + ".yml", "w")
     for line in file_handler.readlines():
         if line.strip() == "mysql_db:":
             line = line.rstrip() + " " + db + "." + table + "\n"
@@ -90,7 +88,7 @@ def gen_sql(db, table, columns, table_comment):
                         comment).strip() + "\"")
     create_column_str = ",\n".join(create_column)
     create_sql_str = ""
-    # create_sql_str += "drop table if exists " + table_name + ";\n"
+    #create_sql_str += "drop table if exists " + table_name + ";\n"
     create_sql_str += "create external table if not exists " + table_name + " ( \n" + create_column_str + " )"
     create_sql_str += "\ncomment \"" + table_comment + "\""
     create_sql_str += "\npartitioned by(p_day string)"
@@ -110,7 +108,10 @@ def run(mysql_db, sql_dir, yaml_dir):
     for table in tables:
         columns = get_table_columns(connection, table)
 
-        comment = table_comment_dict[db + "." + table]
+        if table_comment_dict.has_key(db + "." + table):
+            comment = table_comment_dict[db + "." + table]
+        else:
+            comment = "xxxx"
 
         sql = gen_sql(db, table, columns, comment)
         sql_name = "ods_" + mysql_db + "__" + table + ".sql"
@@ -142,6 +143,8 @@ def change_type(ctype):
         ctype = "string"
     if ctype in ("datetime",):
         ctype = "timestamp"
+    if ctype == "timestamp":
+        ctype = "string"
     if ctype == "text":
         ctype = "string"
     if ctype == "time":
@@ -152,7 +155,7 @@ def change_type(ctype):
         ctype = "bigint"
     if ctype in ("smallint", "mediumint", "tinyint"):
         ctype = "int"
-    if ctype == "decimal":
+    if ctype == ("decimal", "float"):
         ctype = "double"
     if ctype == "date":  # 转换类型
         ctype = "string"
@@ -171,6 +174,6 @@ def get_tables(connection):
 if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    db = "beeper_trans_event"
-    path = "/Users/yxl/yunniao/source/beeper_data_warehouse/job/schema/ods_mysql"
-    run(db, "sql", "yaml")
+    db = "beeper_trans_settlement"
+    table = ""
+    run(db,"sql", "yaml")

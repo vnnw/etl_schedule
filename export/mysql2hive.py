@@ -207,17 +207,19 @@ def change_type(ctype):
         ctype = "string"
     if ctype in ("datetime",):
         ctype = "timestamp"
+    if ctype == "timestamp":
+        ctype = "string"
     if ctype == "text":
         ctype = "string"
     if ctype == "time":
         ctype = "string"
-    if ctype == "longtext":
+    if ctype == "text":
         ctype = "string"
     if ctype in ("long", "int"):
         ctype = "bigint"
-    if ctype in ("mediumint", "smallint"):
+    if ctype in ("smallint", "mediumint", "tinyint"):
         ctype = "int"
-    if ctype == "decimal":
+    if ctype == ("decimal", "float"):
         ctype = "double"
     if ctype == "date":  # 转换类型
         ctype = "string"
