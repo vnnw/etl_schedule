@@ -10,7 +10,7 @@ class HiveType:
         if ctype in ("varchar", "char"):
             ctype = "string"
         if ctype in ("datetime",):
-            ctype = "timestamp"
+            ctype = "string"
         if ctype == "timestamp":
             ctype = "string"
         if ctype in ("text", "longtext"):
