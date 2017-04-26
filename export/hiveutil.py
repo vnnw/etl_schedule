@@ -47,11 +47,13 @@ class HiveUtil:
     def get_connection(self):
         host = self.config.get("hive.host")
         port = self.config.get("hive.port")
+        username = self.config.get("hive.username")
+        password = self.config.get("hive.password")
         connection = pyhs2.connect(host=host,
                                    port=int(port),
                                    authMechanism="PLAIN",
-                                   user="hadoop",
-                                   password="hadoop")
+                                   user=username,
+                                   password=password)
         return connection
 
     def run_sql_count(self, sql):

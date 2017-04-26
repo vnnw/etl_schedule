@@ -38,11 +38,13 @@ run hql > data
 def hive_connection(db):
     host = config_util.get("hive.host")
     port = config_util.get("hive.port")
+    username = config_util.get("hive.username")
+    password = config_util.get("hive.password")
     connection = pyhs2.connect(host=host,
                                port=int(port),
                                authMechanism="PLAIN",
-                               user="hadoop",
-                               password="hadoop",
+                               user=username,
+                               password=password,
                                database=db)
     return connection
 

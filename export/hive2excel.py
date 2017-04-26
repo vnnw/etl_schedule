@@ -85,11 +85,13 @@ def desc_colums(connection, table):
 def hive_connection(db):
     host = configUtil.get("hive.host")
     port = configUtil.get("hive.port")
+    username = configUtil.get("hive.username")
+    password = configUtil.get("hive.password")
     connection = pyhs2.connect(host=host,
                                port=int(port),
                                authMechanism="PLAIN",
-                               user="hadoop",
-                               password="hadoop",
+                               user=username,
+                               password=password,
                                database=db)
     return connection
 
