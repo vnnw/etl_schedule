@@ -1,0 +1,99 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: warehouses
+        column:
+        - name: wid
+          type: long
+        - name: eid
+          type: string
+        - name: name
+          type: string
+        - name: cuid
+          type: long
+        - name: loc
+          type: string
+        - name: city
+          type: string
+        - name: loc_des
+          type: string
+        - name: addr.loc
+          type: string
+        - name: addr.memo
+          type: string
+        - name: addr.contact
+          type: string
+        - name: addr.backup_name
+          type: array
+          splitter: ','
+        - name: addr.jw.0
+          type: double
+        - name: addr.jw.1
+          type: double
+        - name: memo
+          type: string
+        - name: fcc_ids
+          type: array
+          splitter: ','
+        - name: fcc_assign_idx
+          type: long
+        - name: other_fcc_ids
+          type: array
+          splitter: ','
+        - name: st
+          type: long
+        - name: cts
+          type: date
+        - name: pts
+          type: date
+        - name: city_id
+          type: long
+        - name: c_adcid
+          type: long
+        - name: c_quality_mgr
+          type: string
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_warehouse_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - wid
+        - eid
+        - name
+        - cuid
+        - loc
+        - city
+        - loc_des
+        - addr_loc
+        - addr_memo
+        - addr_contact
+        - addr_backup_name
+        - addr_longitude
+        - addr_latitude
+        - memo
+        - fcc_ids
+        - fcc_assign_idx
+        - other_fcc_ids
+        - st
+        - cts
+        - pts
+        - city_id
+        - c_adcid
+        - c_quality_mgr
+  setting:
+    speed:
+      channel: '1'

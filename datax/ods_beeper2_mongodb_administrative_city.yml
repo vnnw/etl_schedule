@@ -1,0 +1,95 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: administrative_cities
+        column:
+        - name: adcid
+          type: long
+        - name: name
+          type: string
+        - name: tags
+          type: array
+          splitter: ','
+        - name: assign_bid_mgr_manually
+          type: boolean
+        - name: max_tcsp
+          type: long
+        - name: in_operation
+          type: boolean
+        - name: need_approve
+          type: boolean
+        - name: contact_show
+          type: boolean
+        - name: title
+          type: string
+        - name: addr
+          type: string
+        - name: zip
+          type: string
+        - name: city_ids
+          type: array
+          splitter: ','
+        - name: cts
+          type: date
+        - name: ruts
+          type: date
+        - name: st
+          type: long
+        - name: commission_rate
+          type: double
+        - name: subsidy_rate
+          type: double
+        - name: subsidy_memo
+          type: string
+        - name: pts
+          type: date
+        - name: ruou.name
+          type: string
+        - name: ruou.id
+          type: long
+        - name: car_team_driver_count
+          type: long
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_administrative_city_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - adcid
+        - name
+        - tags
+        - assign_bid_mgr_manually
+        - max_tcsp
+        - in_operation
+        - need_approve
+        - contact_show
+        - title
+        - addr
+        - zip
+        - city_ids
+        - cts
+        - ruts
+        - st
+        - commission_rate
+        - subsidy_rate
+        - subsidy_memo
+        - pts
+        - ruou_name
+        - ruou_id
+        - car_team_driver_count
+  setting:
+    speed:
+      channel: '1'

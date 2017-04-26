@@ -1,0 +1,40 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: heartbeat_by_dds
+        column:
+        - name: bts
+          type: datetime
+        - name: dd
+          type: string
+        - name: dd_id
+          type: long
+        - name: dids
+          type: array
+          splitter: ','
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_heartbeat_by_dd_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - bts
+        - dd
+        - dd_id
+        - dids
+  setting:
+    speed:
+      channel: '1'

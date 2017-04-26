@@ -1,0 +1,167 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: field_control_clerks
+        column:
+        - name: fccid
+          type: long
+        - name: name
+          type: string
+        - name: trade_tags
+          type: array
+          splitter: ','
+        - name: trade_tag_other_desc
+          type: string
+        - name: expect_work_place
+          type: string
+        - name: interview_st
+          type: long
+        - name: birthday
+          type: string
+        - name: education
+          type: long
+        - name: current_salary
+          type: string
+        - name: expect_salary
+          type: string
+        - name: recruitment_channel
+          type: string
+        - name: interview_remarks
+          type: string
+        - name: quality_mgr
+          type: string
+        - name: gender
+          type: long
+        - name: city
+          type: string
+        - name: district
+          type: string
+        - name: job_no
+          type: string
+        - name: nationality
+          type: string
+        - name: st_notes
+          type: string
+        - name: ecp
+          type: string
+        - name: work_experience
+          type: string
+        - name: fcc_level
+          type: bigint
+        - name: salary_level
+          type: bigint
+        - name: salary_base
+          type: long
+        - name: salary_base_daily
+          type: bigint
+        - name: opening_bank
+          type: string
+        - name: branch
+          type: string
+        - name: cardholder
+          type: string
+        - name: work_st
+          type: long
+        - name: work_time
+          type: date
+        - name: st
+          type: long
+        - name: cts
+          type: date
+        - name: pts
+          type: date
+        - name: inputer_nick
+          type: string
+        - name: inputer_id
+          type: long
+        - name: unread_saids
+          type: array
+          splitter: ','
+        - name: last_rp
+          type: date
+        - name: rp_num
+          type: long
+        - name: ol
+          type: long
+        - name: adcid
+          type: long
+        - name: is_cable
+          type: long
+        - name: mobile_proof
+          type: string
+        - name: tels_proof
+          type: string
+        - name: citizenid_proof
+          type: string
+        - name: ecp_mobile_proof
+          type: string
+        - name: bank_card_num_proof
+          type: string
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_field_control_clerk_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - fccid
+        - name
+        - trade_tags
+        - trade_tag_other_desc
+        - expect_work_place
+        - interview_st
+        - birthday
+        - education
+        - current_salary
+        - expect_salary
+        - recruitment_channel
+        - interview_remarks
+        - quality_mgr
+        - gender
+        - city
+        - district
+        - job_no
+        - nationality
+        - st_notes
+        - ecp
+        - work_experience
+        - fcc_level
+        - salary_level
+        - salary_base
+        - salary_base_daily
+        - opening_bank
+        - branch
+        - cardholder
+        - work_st
+        - work_time
+        - st
+        - cts
+        - pts
+        - inputer_nick
+        - inputer_id
+        - unread_saids
+        - last_rp
+        - rp_num
+        - ol
+        - adcid
+        - is_cable
+        - mobile_proof
+        - tels_proof
+        - citizenid_proof
+        - ecp_mobile_proof
+        - bank_card_num_proof
+  setting:
+    speed:
+      channel: '1'
