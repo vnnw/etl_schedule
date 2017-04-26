@@ -427,7 +427,6 @@ if __name__ == "__main__":
             sys.exit(1)
         if options.columns is None or len(options.columns) == 0:
             print("require mysql columns")
-            sys.exit(1)
         jsonFile = build_json_file(options, args)
         code = run_datax(jsonFile)
         if code != 0:
