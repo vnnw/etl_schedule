@@ -249,6 +249,8 @@ def run_check(options):
     hive_count = r2[0]
     hive_connection.close()
     diff_count = abs(hive_count - mongo_count)
+    print "hive_count:" + str(hive_count)
+    print "mongo_count:" + str(mongo_count)
     if diff_count == 0:
         return 0
     threshold = diff_count * 100 / hive_count
