@@ -6,6 +6,7 @@ class HiveType:
 
     @staticmethod
     def change_type(ctype):
+        octype = ctype
         ctype = ctype.lower()
         if ctype in ("varchar", "char"):
             ctype = "string"
@@ -23,10 +24,11 @@ class HiveType:
             ctype = "bigint"
         if ctype in ("smallint", "mediumint", "tinyint"):
             ctype = "int"
-        if ctype == ("decimal", "float"):
+        if ctype in ("decimal", "float"):
             ctype = "double"
         if ctype == "date":
             ctype = "string"
         if ctype == "array":
             ctype = "string"
+        print "类型装换:", str(octype) + " -> " + str(ctype)
         return ctype
