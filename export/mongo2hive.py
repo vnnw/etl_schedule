@@ -13,7 +13,9 @@ import yaml
 import pymongo
 import pyhs2
 import datetime
+from hivetype import HiveType
 from bin.configutil import ConfigUtil
+from connection import Connection
 
 config_util = ConfigUtil()
 
@@ -103,25 +105,6 @@ def create_dir(dir_name):
     os.system("hadoop fs -mkdir -p " + dir_name)
 
 
-def change_type(ctype):
-    ctype = ctype.lower()
-    if ctype in ("varchar", "char"):
-        ctype = "string"
-    if ctype in "datetime":
-        ctype = "timestamp"
-    if ctype == "text":
-        ctype = "string"
-    if ctype == "time":
-        ctype = "string"
-    if ctype == "longtext":
-        ctype = "string"
-    if ctype == "long":
-        ctype = "bigint"
-    if ctype == "array":
-        ctype = "string"
-    return ctype
-
-
 def parse_hive_db(hive_db_table):
     hive_db_table_array = hive_db_table.split(".")
     hive_db = hive_db_table_array[0]
@@ -153,7 +136,7 @@ def build_json_file(options, args):
     partition_key = None
     partition_value = None
     if partition is not None:
-        connection = get_hive_connection(hive_db)
+        connection = Connection.get_hive_connection(config_util,hive_db)
         cursor = connection.cursor()
         cursor.execute("use " + hive_db)
         partition_array = partition.split("=")
@@ -190,7 +173,7 @@ def build_json_file(options, args):
 
     hive_columns = []
     for column in columns:
-        hive_columns.append({"name": column["name"], "type": change_type(column["type"])})
+        hive_columns.append({"name": column["name"], "type": HiveType.change_type(column["type"])})
 
     mongo_host = config_util.get("mongo." + mongo_db + ".host")
     mongo_port = config_util.get("mongo." + mongo_db + ".port")
@@ -233,31 +216,10 @@ def run_datax(json_file):
     return child_process.returncode
 
 
-def get_mongo_connection(mongo_db):
-    host = config_util.get("mongo." + mongo_db + ".host")
-    port = config_util.get("mongo." + mongo_db + ".port")
-    connection = pymongo.MongoClient(host, int(port))
-    return connection
-
-
-def get_hive_connection(db):
-    host = config_util.get("hive.host")
-    port = config_util.get("hive.port")
-    username = config_util.get("hive.username")
-    password = config_util.get("hive.password")
-    connection = pyhs2.connect(host=host,
-                               port=int(port),
-                               authMechanism="PLAIN",
-                               user=username,
-                               password=password,
-                               database=db)
-    return connection
-
-
 def run_check(options):
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
     (mongo_db, collection) = parse_mongo(options.mongo_db)
-    mongo_connection = get_mongo_connection(mongo_db)
+    mongo_connection = Connection.get_mongo_connection(config_util,mongo_db)
     connection_db = mongo_connection[mongo_db]
     mongo_collection = connection_db[collection]
     # 需要获取 yaml 文件中的 query 条件
@@ -275,7 +237,7 @@ def run_check(options):
     else:
         mongo_count = mongo_collection.find().count()
     mongo_connection.close()
-    hive_connection = get_hive_connection(hive_db)
+    hive_connection = Connection.get_hive_connection(config_util,hive_db)
     count_hive = "select count(*) as hcount from " + options.hive_db
     partition = options.partition
     if partition is not None and len(partition) > 0:

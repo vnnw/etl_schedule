@@ -6,19 +6,11 @@ import MySQLdb
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from export.hivetype import HiveType
+from export.connection import Connection
 from bin.configutil import ConfigUtil
 
 config_util = ConfigUtil()
-
-
-def get_mysql_config(mysql_db):
-    prefix = "mysql" + "." + mysql_db
-    db_config = {}
-    db_config["username"] = config_util.get(prefix + ".username")
-    db_config["password"] = config_util.get(prefix + ".password")
-    db_config["host"] = config_util.get(prefix + ".host")
-    db_config["port"] = config_util.get(prefix + ".port")
-    return db_config
 
 
 def read_table_comment():
@@ -30,21 +22,6 @@ def read_table_comment():
             table_comment_dict[line.split("=")[0].strip()] = line.split("=")[1].strip()
         file_handler.close()
     return table_comment_dict
-
-
-'''
- 获取 mysql 连接
-'''
-
-
-def get_mysql_connection(mysql_db):
-    mysql_config = get_mysql_config(mysql_db)
-    host = mysql_config["host"]
-    username = mysql_config["username"]
-    password = mysql_config["password"]
-    port = int(mysql_config["port"])
-    connection = MySQLdb.connect(host, username, password, mysql_db, port, use_unicode=True, charset='utf8')
-    return connection
 
 
 def write2File(file, sql):
@@ -84,11 +61,11 @@ def gen_sql(db, table, columns, table_comment):
         ctype = typestring.split("(")[0]
         include_column.append(name)
         create_column.append(
-                "    `" + str(name) + "` " + str(change_type(ctype)).strip() + " comment \"" + str(
+                "    `" + str(name) + "` " + str(HiveType.change_type(ctype)).strip() + " comment \"" + str(
                         comment).strip() + "\"")
     create_column_str = ",\n".join(create_column)
     create_sql_str = ""
-    #create_sql_str += "drop table if exists " + table_name + ";\n"
+    # create_sql_str += "drop table if exists " + table_name + ";\n"
     create_sql_str += "create external table if not exists " + table_name + " ( \n" + create_column_str + " )"
     create_sql_str += "\ncomment \"" + table_comment + "\""
     create_sql_str += "\npartitioned by(p_day string)"
@@ -101,7 +78,7 @@ def gen_sql(db, table, columns, table_comment):
 
 
 def run(mysql_db, sql_dir, yaml_dir):
-    connection = get_mysql_connection(mysql_db)
+    connection = Connection.get_mysql_connection(config_util, mysql_db)
     tables = get_tables(connection)
     table_comment_dict = read_table_comment()
     print table_comment_dict
@@ -137,31 +114,6 @@ def run_sql_dict(connection, sql, params):
     return rows
 
 
-def change_type(ctype):
-    ctype = ctype.lower()
-    if ctype in ("varchar", "char"):
-        ctype = "string"
-    if ctype in ("datetime",):
-        ctype = "timestamp"
-    if ctype == "timestamp":
-        ctype = "string"
-    if ctype == "text":
-        ctype = "string"
-    if ctype == "time":
-        ctype = "string"
-    if ctype == "text":
-        ctype = "string"
-    if ctype in ("long", "int"):
-        ctype = "bigint"
-    if ctype in ("smallint", "mediumint", "tinyint"):
-        ctype = "int"
-    if ctype == ("decimal", "float"):
-        ctype = "double"
-    if ctype == "date":  # 转换类型
-        ctype = "string"
-    return ctype
-
-
 def get_tables(connection):
     sql = "show tables"
     rows = run_sql_dict(connection, sql, ())
@@ -176,4 +128,4 @@ if __name__ == '__main__':
     sys.setdefaultencoding('utf-8')
     db = "beeper_trans_settlement"
     table = ""
-    run(db,"sql", "yaml")
+    run(db, "sql", "yaml")

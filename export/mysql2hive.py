@@ -11,7 +11,8 @@ import MySQLdb
 import subprocess
 import pyhs2
 from bin.configutil import ConfigUtil
-from bin.dateutil import DateUtil
+from hivetype import HiveType
+from connection import Connection
 
 config_util = ConfigUtil()
 
@@ -32,31 +33,6 @@ def get_option_parser():
                       help="mysql table exclude columns split by comma")
 
     return parser
-
-
-def get_mysql_config(mysql_db):
-    prefix = "mysql" + "." + mysql_db
-    db_config = {}
-    db_config["username"] = config_util.get(prefix + ".username")
-    db_config["password"] = config_util.get(prefix + ".password")
-    db_config["host"] = config_util.get(prefix + ".host")
-    db_config["port"] = config_util.get(prefix + ".port")
-    return db_config
-
-
-'''
- 获取 mysql 连接
-'''
-
-
-def get_mysql_connection(mysql_db):
-    mysql_config = get_mysql_config(mysql_db)
-    host = mysql_config["host"]
-    username = mysql_config["username"]
-    password = mysql_config["password"]
-    port = int(mysql_config["port"])
-    connection = MySQLdb.connect(host, username, password, mysql_db, port, use_unicode=True, charset='utf8')
-    return connection
 
 
 def read_base_json():
@@ -90,7 +66,7 @@ def read_base_json():
 
 # List[(columnName,columnType,comment)]
 def get_mysql_table_columns(columns, exclude_columns, mysql_db, mysql_table):
-    connection = get_mysql_connection(mysql_db)
+    connection = Connection.get_mysql_connection(config_util, mysql_db)
     command = """show full columns from """ + mysql_table
     cursor = connection.cursor()
     cursor.execute(command)
@@ -127,27 +103,13 @@ def get_mysql_table_columns(columns, exclude_columns, mysql_db, mysql_table):
     return column_list
 
 
-def get_hive_connection(db):
-    host = config_util.get("hive.host")
-    port = config_util.get("hive.port")
-    username = config_util.get("hive.username")
-    password = config_util.get("hive.password")
-    connection = pyhs2.connect(host=host,
-                               port=int(port),
-                               authMechanism="PLAIN",
-                               user=username,
-                               password=password,
-                               database=db)
-    return connection
-
-
 '''
 创建hive 表
 '''
 
 
 def create_hive_table(hive_db, hive_table, column_list, partition):
-    connection = get_hive_connection(hive_db)
+    connection = Connection.get_hive_connection(config_util, hive_db)
     cursor = connection.cursor()
     cursor.execute("use " + hive_db)
     cursor.execute("show tables")
@@ -196,36 +158,6 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
     connection.close()
 
 
-'''
- MySQL -> Hive 字段类型对应
-'''
-
-
-def change_type(ctype):
-    ctype = ctype.lower()
-    if ctype in ("varchar", "char"):
-        ctype = "string"
-    if ctype in ("datetime",):
-        ctype = "timestamp"
-    if ctype == "timestamp":
-        ctype = "string"
-    if ctype == "text":
-        ctype = "string"
-    if ctype == "time":
-        ctype = "string"
-    if ctype == "text":
-        ctype = "string"
-    if ctype in ("long", "int"):
-        ctype = "bigint"
-    if ctype in ("smallint", "mediumint", "tinyint"):
-        ctype = "int"
-    if ctype == ("decimal", "float"):
-        ctype = "double"
-    if ctype == "date":  # 转换类型
-        ctype = "string"
-    return ctype
-
-
 def parse_mysql_db(mysql_db_table):
     mysql_db_table_array = mysql_db_table.split(".")
     mysql_db = mysql_db_table_array[0]
@@ -263,7 +195,7 @@ def process_mysql(options):
         column_name_list.append("`" + name + "`")
         if "(" in ctype:
             ctype = ctype[:ctype.index("(")]
-        ctype = change_type(ctype)
+        ctype = HiveType.change_type(ctype)
         column_name_type_list.append({"name": name, "type": ctype})  # datax json 的格式
         format_column_list.append((name, ctype, comment))  # 用来创建hive表的字段
     query_sql = "select " + ", ".join(column_name_list) + " from  " + mysql_table + " where 1=1 "
@@ -294,7 +226,7 @@ def build_json_file(options, args):
 
     (mysql_db, mysql_table) = parse_mysql_db(options.mysql_db)
 
-    mysql_config_dict = get_mysql_config(mysql_db)
+    mysql_config_dict = Connection.get_mysql_config(config_util, mysql_db)
 
     (format_column_list, column_name_type_list, query_sql) = process_mysql(options)
 
@@ -361,7 +293,7 @@ def run_check(options):
     count_mysql = "select count(*) as mcount from (" + query_sql + ") t1"
     print "count_mysql_sql:" + count_mysql
     (mysql_db, mysql_table) = parse_mysql_db(options.mysql_db)
-    mysql_connection = get_mysql_connection(mysql_db)
+    mysql_connection = Connection.get_mysql_connection(config_util, mysql_db)
     mysql_cursor = mysql_connection.cursor(MySQLdb.cursors.DictCursor)
     mysql_cursor.execute(count_mysql)
     r1 = mysql_cursor.fetchone()
