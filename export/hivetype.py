@@ -27,4 +27,6 @@ class HiveType:
             ctype = "double"
         if ctype == "date":
             ctype = "string"
+        if ctype == "array":
+            ctype = "string"
         return ctype
