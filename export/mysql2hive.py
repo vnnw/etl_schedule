@@ -118,8 +118,8 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
     for table in result:
         tables.add(table[0])
 
-    if hive_table not in tables:
-        raise Exception(hive_table + "不存在,需要先建表")
+    #if hive_table not in tables:
+    #    raise Exception(hive_table + "不存在,需要先建表")
 
     #if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
     #   cursor.execute("drop table " + hive_table)
