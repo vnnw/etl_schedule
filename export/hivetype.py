@@ -30,5 +30,5 @@ class HiveType:
             ctype = "string"
         if ctype == "array":
             ctype = "string"
-        print "类型装换:", str(octype) + " -> " + str(ctype)
+        print "类型转换:", str(octype) + " -> " + str(ctype)
         return ctype
