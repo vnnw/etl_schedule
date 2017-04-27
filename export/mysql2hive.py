@@ -80,11 +80,16 @@ def get_mysql_table_columns(columns, exclude_columns, mysql_db, mysql_table):
     column_list = []
     table_columns = []
     table_column_dict = {}
+    print_column = []
     for r in result:
         (field, ctype, c2, c3, c4, c5, c6, c7, comment) = r
         if field not in exclude_columns_set:
             table_columns.append(field)
             table_column_dict[field] = {"Field": field, "Type": ctype, "Comment": comment}
+            print_column.append(field)
+    print "----------" * 10
+    print ",".join(print_column)
+    print "----------" * 10
     if columns is None:
         for column_name in table_columns:
             column = table_column_dict[column_name]
@@ -119,7 +124,7 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         tables.add(table[0])
 
     #if hive_table not in tables:
-    #    raise Exception(hive_table + "不存在,需要先建表")
+    #    raise Exception(hive_table + " 不存在,需要先建表")
 
     #if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
     #   cursor.execute("drop table " + hive_table)
@@ -143,13 +148,13 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         for column in column_list:
             (name, typestring, comment) = column
             create_column.append(
-                    "" + str(name) + "" + str(typestring).strip() + " comment \"" + str(comment).strip() + "\"")
-        create_column_str = " ,\n".join(create_column)
-        create_sql_str = "create external table if not exists " + hive_table + " (\n " + create_column_str + " )"
+                    "" + str(name) + " " + str(typestring).strip() + " comment \"" + str(comment).strip() + "\"")
+        create_column_str = " ,\n    ".join(create_column)
+        create_sql_str = "create external table if not exists " + hive_db + "." + hive_table + " (\n    " + create_column_str + " )"
         if partition_key is not None:
             create_sql_str += " partitioned by(" + partition_key + " string)"
         # create_sql_str += " comment xxxx"
-        create_sql_str += "\n STORED AS ORC"
+        create_sql_str += "\n stored as orc"
         print(create_sql_str)
         cursor.execute(create_sql_str)
         write2File(hive_table + ".sql", create_sql_str)

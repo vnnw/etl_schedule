@@ -3,6 +3,7 @@
 import os
 import sys
 import MySQLdb
+import random
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -33,7 +34,8 @@ def write2File(file, sql):
 
 def gen_yaml(db, table, columns, yaml_dir):
     file_handler = open("template.yml", "r")
-    file_handler_write = open(yaml_dir + "/" + "ods_" + db + "__" + table + ".yml", "w")
+    yaml_file = "ods_" + db + "__" + table + ".yml"
+    file_handler_write = open(yaml_dir + "/" + yaml_file , "w")
     for line in file_handler.readlines():
         if line.strip() == "mysql_db:":
             line = line.rstrip() + " " + db + "." + table + "\n"
@@ -48,6 +50,7 @@ def gen_yaml(db, table, columns, yaml_dir):
         file_handler_write.writelines(line)
     file_handler.close()
     file_handler_write.close()
+    return yaml_file
 
 
 def gen_sql(db, table, columns, table_comment):
@@ -82,6 +85,7 @@ def run(mysql_db, sql_dir, yaml_dir):
     tables = get_tables(connection)
     table_comment_dict = read_table_comment()
     print table_comment_dict
+    schedule_list = []
     for table in tables:
         columns = get_table_columns(connection, table)
 
@@ -94,8 +98,14 @@ def run(mysql_db, sql_dir, yaml_dir):
         sql_name = "ods_" + mysql_db + "__" + table + ".sql"
         print "----" * 20
         write2File(sql_dir + "/" + sql_name, sql)
-        gen_yaml(db, table, columns, yaml_dir)
+        yaml_file = gen_yaml(db, table, columns, yaml_dir)
+        schedule = ("ods_" + mysql_db + "__" + table).upper() + ",time,0,1,"+ str(random.randint(1, 30)) +",day,yxl,ods_mysql/" + yaml_file + "\n"
+        schedule_list.append(schedule)
+    gen_schedule(schedule_list)
 
+def gen_schedule(schedule_list):
+
+    write2File("schedule.txt",schedule_list)
 
 def get_table_columns(connection, table):
     sql = "show full columns from " + table
@@ -126,6 +136,6 @@ def get_tables(connection):
 if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    db = "beeper_trans_settlement"
+    db = "beeper_trans_task"
     table = ""
     run(db, "sql", "yaml")
