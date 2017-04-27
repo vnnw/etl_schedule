@@ -145,7 +145,7 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
             create_column.append(
                     "" + str(name) + " " + str(typestring).strip() + " comment \"" + str(comment).strip() + "\"")
         create_column_str = " ,\n    ".join(create_column)
-        create_sql_str = "create external table if not exists " + hive_table + " (\n    " + create_column_str + " )"
+        create_sql_str = "create external table if not exists " + hive_db + "." + hive_table + " (\n    " + create_column_str + " )"
         if partition_key is not None:
             create_sql_str += " partitioned by(" + partition_key + " string)"
         # create_sql_str += " comment xxxx"
