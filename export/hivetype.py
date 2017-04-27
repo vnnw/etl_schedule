@@ -6,31 +6,31 @@ class HiveType:
     @staticmethod
     def change_type(ctype):
         octype = ctype
-        ctype = ctype.lower()
+        ctype = ctype.lower().strip()
         if ctype in ("varchar", "char"):
-            ctype = "string"
+            octype = "string"
         if ctype in ("datetime",):
-            ctype = "timestamp"
+            octype = "timestamp"
         if ctype == "timestamp":
-            ctype = "string"
+            octype = "string"
         if ctype in ("text", "longtext"):
-            ctype = "string"
+            octype = "string"
         if ctype == "time":
-            ctype = "string"
+            octype = "string"
         if ctype == "text":
-            ctype = "string"
+            octype = "string"
         if ctype in ("long", "int"):
-            ctype = "bigint"
+            octype = "bigint"
         if ctype in ("smallint", "mediumint", "tinyint"):
-            ctype = "int"
+            octype = "int"
         if ctype in ("decimal", "float"):
-            ctype = "double"
+            octype = "double"
         if ctype == "date":
-            ctype = "string"
+            octype = "string"
         if ctype == "array":
-            ctype = "string"
-        print "类型转换:", str(octype) + " -> " + str(ctype)
-        return ctype
+            octype = "string"
+        print "类型转换:", str(ctype) + " -> " + str(octype)
+        return octype
 
     @staticmethod
     def key_words(cname):
@@ -74,3 +74,6 @@ class HiveType:
             return True
         else:
             return False
+
+if __name__ == '__main__':
+    print HiveType.change_type("datetime")
