@@ -9,7 +9,6 @@ from optparse import OptionParser
 import json
 import MySQLdb
 import subprocess
-import pyhs2
 from bin.configutil import ConfigUtil
 from hivetype import HiveType
 from connection import Connection
@@ -91,11 +90,11 @@ def get_mysql_table_columns(columns, exclude_columns, mysql_db, mysql_table):
     print ",".join(print_column)
     print "----------" * 10
     if columns is None:
-        for column_name in table_columns:
+        for column_name in table_columns: # show full columns 顺序
             column = table_column_dict[column_name]
             column_list.append((column['Field'], column['Type'], column['Comment']))
     else:
-        column_array = columns.split(",")
+        column_array = columns.split(",") # include columns 顺序
         for column_name in column_array:
             column_name = column_name.strip()
             if column_name not in table_columns:
@@ -123,8 +122,8 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
     for table in result:
         tables.add(table[0])
 
-    #if hive_table not in tables:
-    #    raise Exception(hive_table + " 不存在,需要先建表")
+    if hive_table not in tables:
+       raise Exception(hive_table + " 不存在,需要先建表")
 
     #if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
     #   cursor.execute("drop table " + hive_table)
@@ -156,8 +155,8 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         # create_sql_str += " comment xxxx"
         create_sql_str += "\n stored as orc"
         print(create_sql_str)
-        cursor.execute(create_sql_str)
-        write2File(hive_table + ".sql", create_sql_str)
+        #cursor.execute(create_sql_str)
+        #write2File(hive_table + ".sql", create_sql_str)
         if partition_key is not None:  # 添加新的分区
             partition_sql = "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')"
             # cursor.execute(partition_sql)
@@ -370,11 +369,12 @@ if __name__ == "__main__":
             print("require hive database.table")
             sys.exit(1)
         if options.columns is None or len(options.columns) == 0:
-            print("require mysql columns")
+            print("需要指定 MySQL 的列名")
+            sys.exit(1)
         jsonFile = build_json_file(options, args)
         code = run_datax(jsonFile)
         if code != 0:
-            print("datax load failed")
+            print("datax 导入失败")
             sys.exit(1)
         else:
             complete = run_check(options)
