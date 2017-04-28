@@ -37,6 +37,7 @@ class Connection:
         db_config["password"] = config_util.get(prefix + ".password")
         db_config["host"] = config_util.get(prefix + ".host")
         db_config["port"] = config_util.get(prefix + ".port")
+        print "MySQL 配置信息:" + str(mysql_db) + str(db_config)
         return db_config
 
     @staticmethod
