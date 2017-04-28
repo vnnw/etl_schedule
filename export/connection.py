@@ -47,6 +47,8 @@ class Connection:
         username = mysql_config["username"]
         password = mysql_config["password"]
         port = int(mysql_config["port"])
+        print "创建 MySQL 连接 host:{host}, username:{username}, password:{password}, db:{mysql_db}"\
+            .format(host, username, password, mysql_db)
         connection = MySQLdb.connect(host, username, password, mysql_db, port, use_unicode=True, charset='utf8')
         return connection
 
