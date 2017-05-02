@@ -136,6 +136,6 @@ def get_tables(connection):
 if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    db = "beeper_trans_task"
+    db = "beeper_trans_settlement"
     table = ""
     run(db, "sql", "yaml")

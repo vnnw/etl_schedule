@@ -90,11 +90,11 @@ def get_mysql_table_columns(columns, exclude_columns, mysql_db, mysql_table):
     print ",".join(print_column)
     print "----------" * 10
     if columns is None:
-        for column_name in table_columns: # show full columns 顺序
+        for column_name in table_columns:  # show full columns 顺序
             column = table_column_dict[column_name]
             column_list.append((column['Field'], column['Type'], column['Comment']))
     else:
-        column_array = columns.split(",") # include columns 顺序
+        column_array = columns.split(",")  # include columns 顺序
         for column_name in column_array:
             column_name = column_name.strip()
             if column_name not in table_columns:
@@ -123,9 +123,9 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         tables.add(table[0])
 
     if hive_table not in tables:
-       raise Exception(hive_table + " 不存在,需要先建表")
+        raise Exception(hive_table + " 不存在,需要先建表")
 
-    #if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
+    # if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
     #   cursor.execute("drop table " + hive_table)
     #   tables.remove(hive_table)
 
@@ -155,19 +155,21 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         # create_sql_str += " comment xxxx"
         create_sql_str += "\n stored as orc"
         print(create_sql_str)
-        #cursor.execute(create_sql_str)
-        #write2File(hive_table + ".sql", create_sql_str)
+        # cursor.execute(create_sql_str)
+        # write2File(hive_table + ".sql", create_sql_str)
         if partition_key is not None:  # 添加新的分区
             partition_sql = "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')"
             # cursor.execute(partition_sql)
     connection.close()
 
-def write2File(file_name,sql):
+
+def write2File(file_name, sql):
     base_dir = "/home/yunniao/sql"
-    file_handler = open(base_dir + "/" + file_name,'w')
+    file_handler = open(base_dir + "/" + file_name, 'w')
     file_handler.writelines(sql)
     file_handler.flush()
     file_handler.close()
+
 
 def parse_mysql_db(mysql_db_table):
     mysql_db_table_array = mysql_db_table.split(".")
@@ -311,7 +313,7 @@ def run_check(options):
     mysql_count = r1['mcount']
     mysql_connection.close()
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
-    hive_connection = Connection.get_hive_connection(config_util,hive_db)
+    hive_connection = Connection.get_hive_connection(config_util, hive_db)
     count_hive = "select count(*) as hcount from " + options.hive_db
     partition = options.partition
     if partition is not None and len(partition) > 0:
