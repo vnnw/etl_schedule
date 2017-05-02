@@ -99,7 +99,7 @@ def run(mysql_db, sql_dir, yaml_dir):
         print "----" * 20
         write2File(sql_dir + "/" + sql_name, sql)
         yaml_file = gen_yaml(db, table, columns, yaml_dir)
-        schedule = ("ods_" + mysql_db + "__" + table).upper() + ",time,0,1,"+ str(random.randint(1, 30)) +",day,yxl,ods_mysql/" + yaml_file + "\n"
+        schedule = ("ods_" + mysql_db + "__" + table).lower() + ",time,0,1,"+ str(random.randint(1, 30)) +",day,yxl,ods_mysql/" + yaml_file + "\n"
         schedule_list.append(schedule)
     gen_schedule(schedule_list)
 
@@ -136,6 +136,6 @@ def get_tables(connection):
 if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    db = "beeper_trans_match"
+    db = "beeper_trans_settlement"
     table = ""
     run(db, "sql", "yaml")

@@ -25,7 +25,8 @@ class ETLUtil(object):
 
     def parse_line(self, line):
         if line is None or len(line.strip()) == 0:
-            print("读取的记录为空")
+            #print("读取的记录为空")
+            pass
         else:
             line = line.strip()
             print line
