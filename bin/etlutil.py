@@ -70,7 +70,7 @@ class ETLUtil(object):
                         job = self.dboption.get_job_info(dep_job)
                         if job is None:
                             print "依赖的 Job:" + str(dep_job) + " 不存在"
-                                raise Exception("依赖Job :" + dep_job + " 不存在")
+                            raise Exception("依赖Job :" + dep_job + " 不存在")
                         add_job_dep_sets.add(dep_job)
                         dep_job_exists = self.dboption.get_dependency_job(dep_job)
                         dep_job_set = set()
