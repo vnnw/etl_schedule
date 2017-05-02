@@ -326,7 +326,7 @@ def run_check(options):
     odps_count = 0
     with odps.execute_sql(count_odps).open_reader() as reader:
         for record in reader:
-            odps_count = int(record['mcount'].decode())
+            odps_count = int(record['mcount'])
 
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
     hive_connection = get_hive_connection(hive_db)
