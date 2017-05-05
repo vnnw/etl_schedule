@@ -122,8 +122,8 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
     for table in result:
         tables.add(table[0])
 
-    #if hive_table not in tables:
-    #    raise Exception(hive_table + " 不存在,需要先建表")
+    if hive_table not in tables:
+        raise Exception(hive_table + " 不存在,需要先建表")
 
     # if partition is None and hive_table in tables:  # 如果有partition 不能删除表,应该增加partition
     #   cursor.execute("drop table " + hive_table)
@@ -156,7 +156,7 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         create_sql_str += "\n stored as orc"
         print(create_sql_str)
         # cursor.execute(create_sql_str)
-        write2File(hive_table + ".sql", create_sql_str)
+        #write2File(hive_table + ".sql", create_sql_str)
         if partition_key is not None:  # 添加新的分区
             partition_sql = "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')"
             # cursor.execute(partition_sql)
