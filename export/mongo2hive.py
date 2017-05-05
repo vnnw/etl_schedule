@@ -244,7 +244,13 @@ def run_check(options):
     count_hive = "select count(*) as hcount from " + options.hive_db
     partition = options.partition
     if partition is not None and len(partition) > 0:
-        count_hive = count_hive + " where " + partition
+        partition_key = None
+        partition_value = None
+        if partition is not None:
+            partition_array = partition.split("=")
+            partition_key = partition_array[0].strip()
+            partition_value = partition_array[1].strip()
+        count_hive = count_hive + " where " + partition_key + "='" + partition_value + "'"
     print "count_hive_sql:" + count_hive
     hive_cursor = hive_connection.cursor()
     hive_cursor.execute(count_hive)
