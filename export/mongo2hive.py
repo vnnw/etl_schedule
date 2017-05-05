@@ -176,7 +176,7 @@ def build_json_file(options, args):
 
     hive_columns = []
     for column in columns:
-        hive_columns.append({"name": column["name"], "type": HiveType.change_type(column["type"])})
+        hive_columns.append({"name": column["name"], "type": HiveType.change_mongo_type(column["type"])})
 
     mongo_host = config_util.get("mongo." + mongo_db + ".host")
     mongo_port = config_util.get("mongo." + mongo_db + ".port")

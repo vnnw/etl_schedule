@@ -11,8 +11,31 @@ class HiveType:
             octype = "string"
         if ctype in ("datetime",):
             octype = "timestamp"
-        if ctype == "timestamp":
+        if ctype in ("text", "longtext"):
             octype = "string"
+        if ctype == "time":
+            octype = "string"
+        if ctype == "text":
+            octype = "string"
+        if ctype in ("long", "int"):
+            octype = "bigint"
+        if ctype in ("smallint", "mediumint", "tinyint"):
+            octype = "int"
+        if ctype in ("decimal", "float"):
+            octype = "double"
+        if ctype == "array":
+            octype = "string"
+        print "类型转换:", str(ctype) + " -> " + str(octype)
+        return octype
+
+    @staticmethod
+    def change_mongo_type(ctype):
+        octype = ctype
+        ctype = ctype.lower().strip()
+        if ctype in ("varchar", "char"):
+            octype = "string"
+        if ctype in ("datetime",):
+            octype = "timestamp"
         if ctype in ("text", "longtext"):
             octype = "string"
         if ctype == "time":
@@ -26,11 +49,12 @@ class HiveType:
         if ctype in ("decimal", "float"):
             octype = "double"
         if ctype == "date":
-            octype = "string"
+            octype = "timestamp"
         if ctype == "array":
             octype = "string"
         print "类型转换:", str(ctype) + " -> " + str(octype)
         return octype
+
 
     @staticmethod
     def key_words(cname):
@@ -76,4 +100,4 @@ class HiveType:
             return False
 
 if __name__ == '__main__':
-    print HiveType.change_type("datetime")
+    print HiveType.change_type("time")
