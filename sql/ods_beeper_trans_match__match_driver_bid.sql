@@ -1,0 +1,20 @@
+create external table if not exists ods_mysql.ods_beeper_trans_match__match_driver_bid (
+    `id` bigint comment "司机竞价id" ,
+    `process_id` bigint comment "找司机进程ID" ,
+    `driver_id` bigint comment "司机ID" ,
+    `dd_id` bigint comment "拓展ID" ,
+    `car_type_id` bigint comment "司机的车型ID" ,
+    `car_num` string comment "司机的车牌号码" ,
+    `car_team_id` bigint comment "司机所属车队id" ,
+    `driver_price` bigint comment "司机金额,单位:分" ,
+    `customer_price` bigint comment "客户金额,单位:分" ,
+    `slogan` string comment "司机竞标语" ,
+    `status` int comment "司机竞价的状态 1000 已报价 1500 暂被选中 2000 被选中 4000 被取消 4100 未被选中" ,
+    `sub_status` int comment "司机竞价的子状态" ,
+    `modify_count` bigint comment "报价被修改的次数" ,
+    `is_ignore_restrict` int comment "限行是否可以配送" ,
+    `comment` string comment "对竞价状态变更的简要说明" ,
+    `select_driver_time` timestamp comment "选中司机时间" ,
+    `created_at` timestamp comment "创建时间" ,
+    `updated_at` timestamp comment "最后更新时间" ) partitioned by(p_day string)
+ stored as orc
