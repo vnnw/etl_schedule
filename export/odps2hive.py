@@ -8,9 +8,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import json
 import subprocess
-import pyhs2
 from odps import ODPS
 from bin.configutil import ConfigUtil
+from hivetype import HiveType
+from connection import Connection
+
 
 config_util = ConfigUtil()
 
@@ -115,19 +117,6 @@ def get_odps_table_columns(columns, exclude_columns, odps_db, odps_table):
     return column_list
 
 
-def get_hive_connection(db):
-    host = config_util.get("hive.host")
-    port = config_util.get("hive.port")
-    username = config_util.get("hive.username")
-    password = config_util.get("hive.password")
-    connection = pyhs2.connect(host=host,
-                               port=int(port),
-                               authMechanism="PLAIN",
-                               user=username,
-                               password=password,
-                               database=db)
-    return connection
-
 
 '''
 创建hive 表
@@ -135,7 +124,7 @@ def get_hive_connection(db):
 
 
 def create_hive_table(hive_db, hive_table, column_list, partition):
-    connection = get_hive_connection(hive_db)
+    connection = Connection.get_hive_connection(config_util,hive_db)
     cursor = connection.cursor()
     cursor.execute("use " + hive_db)
     cursor.execute("show tables")
@@ -192,25 +181,6 @@ def parse_partition(partition):
 '''
 
 
-def change_type(ctype):
-    ctype = ctype.lower()
-    if ctype in ("varchar", "char"):
-        ctype = "string"
-    if ctype in ("datetime",):
-        ctype = "timestamp"
-    if ctype == "text":
-        ctype = "string"
-    if ctype == "time":
-        ctype = "string"
-    if ctype == "longtext":
-        ctype = "string"
-    if ctype == "long":
-        ctype = "bigint"
-    if ctype == "decimal":
-        ctype = "double"
-    return ctype
-
-
 def parse_odps_db(odps_db_table):
     odps_db_table_array = odps_db_table.split(".")
     odps_db = odps_db_table_array[0]
@@ -247,8 +217,8 @@ def build_json_file(options, args):
     for column in odps_columns:
         (name, ctype, comment) = column
         column_name_list.append(name)
-        format_column_list.append((name, change_type(ctype), comment))
-        column_name_type_list.append({"name": name, "type": change_type(ctype)})
+        format_column_list.append((name, HiveType.change_type(ctype), comment))
+        column_name_type_list.append({"name": name, "type": HiveType.change_type(ctype)})
 
     create_hive_table(hive_db, hive_table, format_column_list, partition)
 
@@ -329,7 +299,7 @@ def run_check(options):
             odps_count = int(record['mcount'])
 
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
-    hive_connection = get_hive_connection(hive_db)
+    hive_connection = Connection.get_hive_connection(config_util,hive_db)
     count_hive = "select count(*) as hcount from " + options.hive_db
     if partition_key is not None and len(partition_key) > 0:
         count_hive = count_hive + " where " + partition_key + "='" + partition_value + "'"
