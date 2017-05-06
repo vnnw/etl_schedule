@@ -155,7 +155,7 @@ def build_json_file(options, args):
     hive_path = config_util.get("hive.warehouse") + "/" + hive_db + ".db/" + hive_table
 
     if partition is not None:
-        hive_path = hive_path + "/" + partition_value
+        hive_path = hive_path + "/" + partition
 
     remove_dir(default_fs + hive_path)
     create_dir(default_fs + hive_path)
