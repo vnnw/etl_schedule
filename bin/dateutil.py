@@ -160,4 +160,4 @@ class DateUtil(object):
 if __name__ == '__main__':
     start = DateUtil.parse_date("2016-02-25")
     now_time = DateUtil.parse_date("2016-02-26")
-    print DateUtil.get_list_day(start,now_time)
+    print DateUtil.get_yesterday_fmt(None,start)

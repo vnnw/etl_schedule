@@ -9,22 +9,22 @@ import yaml
 
 
 class YamlParser(object):
-    def vars_map(self, key, value, init_day):
+    def vars_map(self, key, value, init_day, format=None):
         init_date = DateUtil.parse_date(init_day, None)
         if key == 'today':
             if value is None:
-                return DateUtil.get_now_fmt(None, init_date)
+                return DateUtil.get_now_fmt(format, init_date)
             else:
                 return value
         elif key == 'yesterday':
             if value is None:
-                return DateUtil.get_yesterday_fmt(None, init_date)
+                return DateUtil.get_yesterday_fmt(format, init_date)
             else:
                 return value
         elif key == 'intervalday':
             if value is None:
                 raise Exception("interval day is none")
-            return DateUtil.get_interval_day_fmt(int(value), None, init_date)
+            return DateUtil.get_interval_day_fmt(int(value), format, init_date)
         elif key == 'lastMonth':
             if value is None:
                 return DateUtil.get_last_month(init_date)
@@ -91,7 +91,7 @@ class YamlParser(object):
     替换变量
     '''
 
-    def replace_sql_param(self, sql, vars_dict, init_day):
+    def replace_sql_param(self, sql, vars_dict, init_day, format=None):
         p = re.compile(r"\$\{[^\}\$\u0020]+\}")
         m = p.findall(sql)
         if m and len(m) > 0:
@@ -102,7 +102,7 @@ class YamlParser(object):
                 print(vars_dict)
                 if vars_dict and vars_dict[var] and vars_dict[var].has_key('value') and vars_dict[var]['value']:
                     default_value = str(vars_dict[var]['value'])
-                sql = sql.replace(key, self.vars_map(var, default_value, init_day))
+                sql = sql.replace(key, self.vars_map(var, default_value, init_day, format))
         return sql
 
     def export_command(self, python_path, project_path, command_key, command_value, init_day):
@@ -207,9 +207,13 @@ class YamlParser(object):
             if command_value.has_key('partition') and command_value['partition']:
                 command_list.append("--partition")
                 partition_value = command_value['partition'].strip()
-                partition_value = self.replace_sql_param(partition_value, vars, init_day)
+                partition_format = None
+                if command_value.has_key('partition_format') and command_value['partition_format']:
+                    partition_format = command_value['partition_format'].strip()
+                partition_value = self.replace_sql_param(partition_value, vars, init_day, partition_format)
                 command_list.append(partition_value)
             return command_list
+
 
 # for test
 if __name__ == '__main__':
@@ -219,7 +223,7 @@ if __name__ == '__main__':
     for subdir in os.listdir(basedir):
         for file in os.listdir(basedir + "/" + subdir):
             yaml_files.append(basedir + "/" + subdir + "/" + file)
-    yaml_files = [basedir + '/app/app_bi_flbp.yml']
+    yaml_files = [basedir + '/odps/odps_heartbeat.yml']
     init_day = '2016-01-03'
     for yaml_file in yaml_files:
         yaml_file_handler = open(yaml_file, 'r')

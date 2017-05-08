@@ -159,6 +159,8 @@ if __name__ == '__main__':
             etl.read_file(value.strip())
         elif option in ["--query", "-q"]:
             etl.query_etl_job(value.upper())
+        elif option in ["--delete", "-q"]:
+            pass
         else:
             print("nothing to do")
             sys.exit(0)
