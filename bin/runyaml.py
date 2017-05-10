@@ -81,5 +81,7 @@ if __name__ == '__main__':
         print "运行时设置的日期:", p_day
         code = run_yaml.run_command(options.path, p_day)
         run_code.append(str(code))
+        if code != 0:
+            sys.exit(1)
     code_str = ",".join(run_code)
     print "运行结果:", code_str
