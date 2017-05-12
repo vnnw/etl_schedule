@@ -75,7 +75,7 @@ def run_hsql(table, hive_hql):
                 value = row[index]
                 value_str = str(value)
                 if value_str == "None":
-                    value_str = ""
+                    value_str = "\N"
                 data.append(value_str)
             write_handler.writelines(DATA_SPLIT.join(data)+'\n')
         write_handler.flush()
@@ -126,7 +126,7 @@ load data to mysql
 
 def load_mysql(db, columns, tmpdata):
     command = "load data local infile '" + tmpdata + "' INTO TABLE " + db \
-              + " fields terminated by '" + DATA_SPLIT +"' (" + columns + ")"
+              + " FIELDS ESCAPED BY '\N' fields terminated by '" + DATA_SPLIT +"' (" + columns + ")"
     code = run_mysql_command(command)
     os.remove(tmpdata)  # remove data file
     return code
