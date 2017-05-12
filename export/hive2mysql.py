@@ -72,7 +72,11 @@ def run_hsql(table, hive_hql):
         for row in rows:
             data = []
             for index in range(0, len(row)):
-                data.append(str(row[index]))
+                value = row[index]
+                value_str = str(value)
+                if value_str == "None":
+                    value_str = ""
+                data.append(value_str)
             write_handler.writelines(DATA_SPLIT.join(data)+'\n')
         write_handler.flush()
         write_handler.close()
