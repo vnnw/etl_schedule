@@ -74,6 +74,7 @@ def run_hsql(table, hive_hql):
             for index in range(0, len(row)):
                 value = row[index]
                 value_str = str(value)
+		value_str = value_str.replace("\\","\\\\").replace("|",";")
                 if value_str == "None":
                     value_str = "\N"
                 data.append(value_str)
