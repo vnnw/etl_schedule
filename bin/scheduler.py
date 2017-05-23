@@ -48,7 +48,7 @@ class Scheduler(object):
                             self.logger.error("更新时间出发Job :" + job_name + " 状态为Pending失败")
                     elif trigger_type == "month":  # 每月运行
                         start_day = job["start_day"]
-                        if start_day == day:
+                        if int(start_day) == day:
                             record = self.dboption.update_trigger_job_pending(current, job_name)
                             if record == 1:
                                 self.logger.info("更新时间出发Job:" + job_name + " 状态为Pending")
@@ -56,7 +56,7 @@ class Scheduler(object):
                                 self.logger.error("更新时间出发Job :" + job_name + " 状态为Pending失败")
                     elif trigger_type == "week":  # 每周运行
                         start_day = job["start_day"]
-                        if start_day == week_day:
+                        if int(start_day) == week_day:
                             record = self.dboption.update_trigger_job_pending(current, job_name)
                             if record == 1:
                                 self.logger.info("更新时间出发Job:" + job_name + " 状态为Pending")
