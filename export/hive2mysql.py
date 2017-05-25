@@ -74,12 +74,12 @@ def run_hsql(table, hive_hql):
             for index in range(0, len(row)):
                 value = row[index]
                 value_str = str(value)
-		value_str = value_str.replace("\\","\\\\").replace("|",";")
+                value_str = value_str.replace("\\","\\\\").replace("|",";")
                 if value_str == "None":
                     value_str = "\N"
                 data.append(value_str)
-            write_handler.writelines(DATA_SPLIT.join(data)+'\n')
-        write_handler.flush()
+                write_handler.writelines(DATA_SPLIT.join(data)+'\n')
+                write_handler.flush()
         write_handler.close()
         return (0, tmpdata)
     except Exception, e:
