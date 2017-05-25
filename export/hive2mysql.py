@@ -9,6 +9,7 @@ import datetime
 import random
 import pyhs2
 import traceback
+import subprocess
 from bin.configutil import ConfigUtil
 
 config_util = ConfigUtil()
@@ -48,6 +49,19 @@ def hive_connection(db):
                                database=db)
     return connection
 
+def create_tmp_dir():
+    mills = datetime.datetime.now().microsecond
+    rand = random.randint(1, 100)
+    tmpdatadir = config_util.get("tmp.path") + "/hdatas" + rand + "/" + mills
+    if not os.path.exists(tmpdatadir):
+        os.makedirs(tmpdatadir)
+    return tmpdatadir
+
+def create_tmp_file():
+    basedir = create_tmp_dir()
+    mills = datetime.datetime.now().microsecond
+    rand = random.randint(1, 100)
+    return basedir + "/" + str(mills) + "-" + str(rand) + ".data"
 
 def run_hsql(table, hive_hql):
     try:
@@ -60,10 +74,7 @@ def run_hsql(table, hive_hql):
             hive_query = hive_hql.strip()
             hive_query = hive_query.replace(";", "")
         print "Query:", hive_query
-        mills = datetime.datetime.now().microsecond
-        rand = random.randint(1, 100)
-        tmpdatadir = config_util.get("tmp.path") + "/hdatas"
-        tmpdata = tmpdatadir + "/" + str(mills) + "-" + str(rand) + ".data"
+        tmpdata = create_tmp_file()
         print "数据文件:", tmpdata
         write_handler = open(tmpdata, 'w')
         cursor = connection.cursor()
@@ -126,11 +137,26 @@ load data to mysql
 
 
 def load_mysql(db, columns, tmpdata):
-    command = "load data local infile '" + tmpdata + "' INTO TABLE " + db \
+
+    # split file
+    split_prefix= "split." + tmpdata + "."
+    split_dir = create_tmp_dir()
+    split_command = "split -d -a 4 -b 200m "+ tmpdata + " " + split_dir + "/" + split_prefix
+    split_process = subprocess.Popen(split_command, shell=True, stdout=subprocess.PIPE)
+    split_result = split_process.wait()
+    if split_result == 0:
+        for file in os.listdir(split_dir):
+            print "导入 MySQL数据文件:" + str(file)
+            command = "load data local infile '" + split_dir + "/" + file + "' INTO TABLE " + db \
               + " fields terminated by '" + DATA_SPLIT +"' (" + columns + ")"
-    code = run_mysql_command(command)
-    os.remove(tmpdata)  # remove data file
-    return code
+            code = run_mysql_command(command)
+            if code != 0:
+                return code
+        os.remove(tmpdata)  # remove data file
+        os.removedirs(split_dir)
+        return 0
+    else:
+        print "分割文件失败 data:" + str(tmpdata)
 
 
 def run_sql(sql):
