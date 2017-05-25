@@ -52,7 +52,7 @@ def hive_connection(db):
 def create_tmp_dir():
     mills = datetime.datetime.now().microsecond
     rand = random.randint(1, 100)
-    tmpdatadir = config_util.get("tmp.path") + "/hdatas" + rand + "/" + mills
+    tmpdatadir = config_util.get("tmp.path") + "/hdatas" + str(rand) + "/" + str(mills)
     if not os.path.exists(tmpdatadir):
         os.makedirs(tmpdatadir)
     return tmpdatadir
