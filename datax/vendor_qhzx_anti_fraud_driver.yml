@@ -1,0 +1,56 @@
+job:
+  content:
+  - reader:
+      name: txtfilereader
+      parameter:
+        path:
+        - '${csv_file_path}'
+        encoding: utf-8
+        fieldDelimiter: ','
+        column:
+        - index: 0
+          type: long
+        - index: 1
+          type: boolean
+        - index: 2
+          type: boolean
+        - index: 3
+          type: boolean
+        - index: 4
+          type: boolean
+        - index: 5
+          type: boolean
+        - index: 6
+          type: boolean
+        - index: 7
+          type: boolean
+        - index: 8
+          type: date
+          format: 'yyyy-MM-dd'
+        - index: 9
+          type: string
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: vendor_qhzx_anti_fraud_driver
+        partition: ''
+        truncate: true
+        tunnelServer: ''
+        column:
+        - driver_id
+        - is_blacklist
+        - is_crank
+        - is_fraud
+        - is_empty
+        - is_your_code
+        - is_small
+        - is_social
+        - m_update_date
+        - m_risk_desc
+  setting:
+    speed:
+      channel: '1'

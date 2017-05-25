@@ -1,0 +1,133 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: car_teams
+        column:
+        - name: ctid
+          type: long
+        - name: name
+          type: string
+        - name: captain
+          type: string
+        - name: last_rp
+          type: date
+        - name: dd_id
+          type: long
+        - name: adcid
+          type: long
+        - name: city_id
+          type: long
+        - name: cardholder
+          type: string
+        - name: bank
+          type: string
+        - name: sub_bank
+          type: string
+        - name: card_province
+          type: string
+        - name: card_city
+          type: string
+        - name: desc
+          type: string
+        - name: remark
+          type: string
+        - name: st
+          type: long
+        - name: cts
+          type: date
+        - name: creator_id
+          type: long
+        - name: is_open_quotation
+          type: long
+        - name: car_team_auth
+          type: array
+          splitter: ','
+        - name: citizen_group_approve
+          type: long
+        - name: citizen_id_front_image
+          type: string
+        - name: citizen_id_back_image
+          type: string
+        - name: handled_citizen_id_image
+          type: string
+        - name: citizen_group_approve_memo
+          type: string
+        - name: citizen_id_start_time
+          type: date
+        - name: citizen_id_end_time
+          type: date
+        - name: citizen_group_check_user_name
+          type: string
+        - name: citizen_group_check_date
+          type: date
+        - name: last_update_cert_time
+          type: date
+        - name: distribution_area_list
+          type: array
+          splitter: ','
+        - name: experience_list
+          type: array
+          splitter: ','
+        - name: car_type_list
+          type: array
+          splitter: ','
+        - name: is_have_qualification
+          type: long
+        - name: qualification_image
+          type: string
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_car_team_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - ctid
+        - name
+        - captain
+        - last_rp
+        - dd_id
+        - adcid
+        - city_id
+        - cardholder
+        - bank
+        - sub_bank
+        - card_province
+        - card_city
+        - desc_
+        - remark
+        - st
+        - cts
+        - creator_id
+        - is_open_quotation
+        - car_team_auth
+        - citizen_group_approve
+        - citizen_id_front_image
+        - citizen_id_back_image
+        - handled_citizen_id_image
+        - citizen_group_approve_memo
+        - citizen_id_start_time
+        - citizen_id_end_time
+        - citizen_group_check_user_name
+        - citizen_group_check_date
+        - last_update_cert_time
+        - distribution_area_list
+        - experience_list
+        - car_type_list
+        - is_have_qualification
+        - qualification_image
+  setting:
+    speed:
+      channel: '1'

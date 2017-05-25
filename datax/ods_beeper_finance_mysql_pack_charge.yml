@@ -1,0 +1,51 @@
+job:
+  content:
+  - reader:
+      name: mysqlreader
+      parameter:
+        connection:
+        - jdbcUrl:
+          - 'jdbc:mysql://${mysql_ip}:${mysql_port}/${mysql_database}'
+          table:
+          - pack_charge
+        username: '${mysql_username}'
+        password: '${mysql_password}'
+        where: ''
+        column:
+        - id
+        - customer_id
+        - have_surety
+        - charge_unit
+        - surety_unit
+        - have_bonus
+        - bonus_unit
+        - bonus_demo
+        - created_at
+        - updated_at
+        - have_arrange_auth
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper_finance_mysql_pack_charge_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - id
+        - customer_id
+        - have_surety
+        - charge_unit
+        - surety_unit
+        - have_bonus
+        - bonus_unit
+        - bonus_demo
+        - created_at
+        - updated_at
+        - have_arrange_auth
+  setting:
+    speed:
+      channel: '1'

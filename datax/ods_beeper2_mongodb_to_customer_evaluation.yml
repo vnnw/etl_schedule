@@ -1,0 +1,106 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: to_customer_evaluations
+        where: ''
+        column:
+        - name: evid
+          type: long
+        - name: did
+          type: long
+        - name: cuid
+          type: long
+        - name: wid
+          type: long
+        - name: lid
+          type: long
+        - name: tid
+          type: long
+        - name: task_line_name
+          type: string
+        - name: city
+          type: string
+        - name: sales
+          type: string
+        - name: aeids
+          type: array
+          splitter: ','
+        - name: tags
+          type: array
+          splitter: ','
+        - name: evtags
+          type: array
+          splitter: ','
+        - name: ac
+          type: long
+        - name: pts
+          type: datetime
+        - name: bid_mgr
+          type: string
+        - name: type
+          type: long
+        - name: score
+          type: long
+        - name: comment
+          type: string
+        - name: ihc
+          type: boolean
+        - name: cts
+          type: datetime
+        - name: range
+          type: string
+        - name: st
+          type: long
+        - name: ihr
+          type: boolean
+        - name: reply
+          type: string
+        - name: rts
+          type: datetime
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_to_customer_evaluation_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - evid
+        - did
+        - cuid
+        - wid
+        - lid
+        - tid
+        - task_line_name
+        - city
+        - sales
+        - aeids
+        - tags
+        - evtags
+        - ac
+        - pts
+        - bid_mgr
+        - type_
+        - score
+        - comment_
+        - ihc
+        - cts
+        - range_
+        - st
+        - ihr
+        - reply
+        - rts
+  setting:
+    speed:
+      channel: '1'

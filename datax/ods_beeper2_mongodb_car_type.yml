@@ -1,0 +1,45 @@
+job:
+  content:
+  - reader:
+      name: mongodbreader
+      parameter:
+        address:
+        - '${mongodb_ip}:${mongodb_port}'
+        userName: ''
+        userPassword: ''
+        dbName: '${mongodb_database}'
+        collectionName: car_types
+        column:
+        - name: ctid
+          type: long
+        - name: name
+          type: string
+        - name: rank
+          type: long
+        - name: group
+          type: string
+        - name: is_lengmen
+          type: boolean
+        - name: alias
+          type: string
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper2_mongodb_car_type_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - ctid
+        - name
+        - rank
+        - group_
+        - is_lengmen
+        - alias
+  setting:
+    speed:
+      channel: '1'

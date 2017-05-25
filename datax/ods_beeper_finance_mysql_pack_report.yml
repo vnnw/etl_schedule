@@ -1,0 +1,85 @@
+job:
+  content:
+  - reader:
+      name: mysqlreader
+      parameter:
+        connection:
+        - jdbcUrl:
+          - 'jdbc:mysql://${mysql_ip}:${mysql_port}/${mysql_database}'
+          table:
+          - pack_report
+        username: '${mysql_username}'
+        password: '${mysql_password}'
+        where: ''
+        column:
+        - id
+        - charge_id
+        - customer_id
+        - report_date
+        - reporter_id
+        - adc_id
+        - sales_id
+        - bu_lead_id
+        - status
+        - committed_at
+        - created_at
+        - updated_at
+        - have_surety
+        - charge_unit
+        - surety_unit
+        - gross_profit
+        - gross_profit_rate
+        - customer_tax_rate
+        - customer_sop_rate
+        - income_total
+        - income_total_tax
+        - income_business_total
+        - income_other_total
+        - cost_total
+        - cost_surcharge_total
+        - cost_business_total
+        - description
+        - have_arrange_auth
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper_finance_mysql_pack_report_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - id
+        - charge_id
+        - customer_id
+        - report_date
+        - reporter_id
+        - adc_id
+        - sales_id
+        - bu_lead_id
+        - status
+        - committed_at
+        - created_at
+        - updated_at
+        - have_surety
+        - charge_unit
+        - surety_unit
+        - gross_profit
+        - gross_profit_rate
+        - customer_tax_rate
+        - customer_sop_rate
+        - income_total
+        - income_total_tax
+        - income_business_total
+        - income_other_total
+        - cost_total
+        - cost_surcharge_total
+        - cost_business_total
+        - description
+        - have_arrange_auth
+  setting:
+    speed:
+      channel: '1'

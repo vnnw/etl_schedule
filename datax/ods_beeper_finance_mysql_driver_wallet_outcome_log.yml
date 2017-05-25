@@ -1,0 +1,47 @@
+job:
+  content:
+  - reader:
+      name: mysqlreader
+      parameter:
+        connection:
+        - jdbcUrl:
+          - 'jdbc:mysql://${mysql_ip}:${mysql_port}/${mysql_database}'
+          table:
+          - driver_wallet_outcome_logs
+        username: '${mysql_username}'
+        password: '${mysql_password}'
+        where: ''
+        column:
+        - log_id
+        - did
+        - income_id
+        - money
+        - outcome_type
+        - trace_id
+        - memo
+        - created_at
+        - updated_at
+    writer:
+      name: odpswriter
+      parameter:
+        odpsServer: http://service.odps.aliyun.com/api
+        accessId: '${odps_access_id}'
+        accessKey: '${odps_access_key}'
+        project: '${warehouse_project}'
+        table: ods_beeper_finance_mysql_driver_wallet_outcome_log_snapshots
+        partition: 'snapshot_date=${snapshot_date}'
+        truncate: true
+        tunnelServer: ''
+        column:
+        - log_id
+        - did
+        - income_id
+        - money
+        - outcome_type
+        - trace_id
+        - memo
+        - created_at
+        - updated_at
+  setting:
+    speed:
+      channel: '1'
