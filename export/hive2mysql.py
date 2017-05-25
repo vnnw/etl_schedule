@@ -139,7 +139,8 @@ load data to mysql
 def load_mysql(db, columns, tmpdata):
 
     # split file
-    split_prefix= "split." + tmpdata + "."
+    file_name = os.path.basename(tmpdata)
+    split_prefix= "split." + file_name + "."
     split_dir = create_tmp_dir()
     split_command = "split -d -a 4 -b 200m "+ tmpdata + " " + split_dir + "/" + split_prefix
     split_process = subprocess.Popen(split_command, shell=True, stdout=subprocess.PIPE)
