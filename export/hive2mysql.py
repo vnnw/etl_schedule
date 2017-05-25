@@ -10,6 +10,7 @@ import random
 import pyhs2
 import traceback
 import subprocess
+import shutil
 from bin.configutil import ConfigUtil
 
 config_util = ConfigUtil()
@@ -154,7 +155,7 @@ def load_mysql(db, columns, tmpdata):
             if code != 0:
                 return code
         os.remove(tmpdata)  # remove data file
-        os.removedirs(split_dir)
+        shutil.rmtree(split_dir)
         return 0
     else:
         print "分割文件失败 data:" + str(tmpdata)
