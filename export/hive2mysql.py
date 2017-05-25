@@ -80,18 +80,24 @@ def run_hsql(table, hive_hql):
         write_handler = open(tmpdata, 'w')
         cursor = connection.cursor()
         cursor.execute(hive_query)
-        rows = cursor.fetch()
-        for row in rows:
-            data = []
-            for index in range(0, len(row)):
-                value = row[index]
-                value_str = str(value)
-                value_str = value_str.replace("\\","\\\\").replace("|",";")
-                if value_str == "None":
-                    value_str = "\N"
-                data.append(value_str)
-                write_handler.writelines(DATA_SPLIT.join(data)+'\n')
-                write_handler.flush()
+        count = 0
+        while True:
+            row = cursor.fetchone()
+            if row is None:
+                print "cursor is over, total count:" + str(count)
+                break
+            else:
+                count += 1
+                data = []
+                for index in range(0, len(row)):
+                    value = row[index]
+                    value_str = str(value)
+                    value_str = value_str.replace("\\", "\\\\").replace("|",";")
+                    if value_str == "None":
+                        value_str = "\N"
+                    data.append(value_str)
+                    write_handler.writelines(DATA_SPLIT.join(data)+'\n')
+                    write_handler.flush()
         write_handler.close()
         return (0, tmpdata)
     except Exception, e:
@@ -189,6 +195,7 @@ def run(options, args):
                     return -1
             lcode = load_mysql(db, columns, tmpdata)
             if lcode != 0:
+                #os.remove(tmpdata)
                 print("load data error")
                 return -1
             else:
