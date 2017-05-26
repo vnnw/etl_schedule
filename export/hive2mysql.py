@@ -95,10 +95,11 @@ def run_hsql(table, hive_hql):
                     value_str = value_str.replace("\\", "\\\\").replace("|",";")
                     if value_str == "None":
                         value_str = "\N"
-                    data.append(value_str)
+                    data.append(value_str.strip())
                 write_handler.writelines(DATA_SPLIT.join(data)+'\n')
                 write_handler.flush()
         write_handler.close()
+        connection.close()
         return (0, tmpdata)
     except Exception, e:
         print(traceback.format_exc())
