@@ -96,8 +96,8 @@ def run_hsql(table, hive_hql):
                     if value_str == "None":
                         value_str = "\N"
                     data.append(value_str)
-                    write_handler.writelines(DATA_SPLIT.join(data)+'\n')
-                    write_handler.flush()
+                write_handler.writelines(DATA_SPLIT.join(data)+'\n')
+                write_handler.flush()
         write_handler.close()
         return (0, tmpdata)
     except Exception, e:
