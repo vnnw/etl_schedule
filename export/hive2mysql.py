@@ -166,6 +166,7 @@ def load_mysql(db, columns, tmpdata):
         return 0
     else:
         print "分割文件失败 data:" + str(tmpdata)
+        return split_result
 
 
 def run_sql(sql):

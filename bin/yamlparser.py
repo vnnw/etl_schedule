@@ -138,6 +138,9 @@ class YamlParser(object):
                 partition_value = command_value['where']
                 partition_value = self.replace_sql_param(partition_value, vars, init_day)
                 command_list.append(partition_value)
+            if command_value.has_key("query_sql") and command_value['query_sql']:
+                command_list.append("--query-sql")
+                command_list.append(command_value['query_sql'])
             return command_list
         if command_key == 'mongo2hive':
             command_list.append(mongo2hive)

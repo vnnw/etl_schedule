@@ -30,6 +30,8 @@ def get_option_parser():
                       help="hive partition key=value")
     parser.add_option("-e", "--exclude-columns", dest="exclude_columns", action="store",
                       help="mysql table exclude columns split by comma")
+    parser.add_option("-q", "--query-sql", dest="query_sql", action="store",
+                      help="mysql query sql")
 
     return parser
 
@@ -198,6 +200,8 @@ def process_mysql(options):
     if where is not None:  # where 条件
         where = where.strip()
 
+
+
     (mysql_db, mysql_table) = parse_mysql_db(options.mysql_db)
     column_list = get_mysql_table_columns(columns, exclude_columns, mysql_db, mysql_table)
     column_name_list = []
@@ -211,7 +215,15 @@ def process_mysql(options):
         ctype = HiveType.change_type(ctype)
         column_name_type_list.append({"name": name, "type": ctype})  # datax json 的格式
         format_column_list.append((name, ctype, comment))  # 用来创建hive表的字段
-    query_sql = "select " + ", ".join(column_name_list) + " from  " + mysql_table + " where 1=1 "
+
+    # 有默认 SQL
+    if options.query_sql is not None and len(options.query_sql.strip()) > 0:
+        if "where" in options.query_sql:
+            raise Exception("查询 SQL 的 where 条件需要添加到 where 参数上 --where")
+        query_sql = options.query_sql.strip() + " where 1=1"
+    else:
+        query_sql = "select " + ", ".join(column_name_list) + " from  " + mysql_table + " where 1=1 "
+
     if where is not None and len(where) > 0:
         query_sql += " and " + where
     print "query_sql:", str(query_sql)
