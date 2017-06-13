@@ -82,7 +82,8 @@ def gen_sql(db, table, columns, table_comment):
 
 def get_table_comment(connection, table):
     sql = "show table status where name = %s"
-    status = run_sql_dict(connection, sql, (table))
+    row_dict = run_sql_dict(connection, sql, (table,))
+    status = row_dict[0]
     if status:
         comment = status['Comment']
         return comment
@@ -100,7 +101,7 @@ def run(mysql_db, sql_dir, yaml_dir):
         columns = get_table_columns(connection, table)
 
         comment = get_table_comment(connection, table)
-        if not comment and len(comment.strip()) > 0:
+        if not comment or len(comment.strip()) == 0:
             comment = "xxxx"
 
         sql = gen_sql(db, table, columns, comment)
@@ -147,6 +148,6 @@ def get_tables(connection):
 if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    db = "beeper_trans_settlement"
+    db = "beeper_finance"
     table = ""
     run(db, "sql", "yaml")
