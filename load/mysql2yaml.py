@@ -35,7 +35,7 @@ def write2File(file, sql):
 def gen_yaml(db, table, columns, yaml_dir):
     file_handler = open("template.yml", "r")
     yaml_file = "ods_" + db + "__" + table + ".yml"
-    file_handler_write = open(yaml_dir + "/" + yaml_file , "w")
+    file_handler_write = open(yaml_dir + "/" + yaml_file, "w")
     for line in file_handler.readlines():
         if line.strip() == "mysql_db:":
             line = line.rstrip() + " " + db + "." + table + "\n"
@@ -80,6 +80,16 @@ def gen_sql(db, table, columns, table_comment):
     return create_sql_str
 
 
+def get_table_comment(connection, table):
+    sql = "show table status where name = %s"
+    status = run_sql_dict(connection, sql)
+    if status:
+        comment = status['Comment']
+        return comment
+    else:
+        return None
+
+
 def run(mysql_db, sql_dir, yaml_dir):
     connection = Connection.get_mysql_connection(config_util, mysql_db)
     tables = get_tables(connection)
@@ -89,9 +99,8 @@ def run(mysql_db, sql_dir, yaml_dir):
     for table in tables:
         columns = get_table_columns(connection, table)
 
-        if table_comment_dict.has_key(db + "." + table):
-            comment = table_comment_dict[db + "." + table]
-        else:
+        comment = get_table_comment(connection, table)
+        if not comment and len(comment.strip()) > 0:
             comment = "xxxx"
 
         sql = gen_sql(db, table, columns, comment)
@@ -99,13 +108,15 @@ def run(mysql_db, sql_dir, yaml_dir):
         print "----" * 20
         write2File(sql_dir + "/" + sql_name, sql)
         yaml_file = gen_yaml(db, table, columns, yaml_dir)
-        schedule = ("ods_" + mysql_db + "__" + table).lower() + ",time,0,1,"+ str(random.randint(1, 30)) +",day,yxl,ods_mysql/" + yaml_file + "\n"
+        schedule = ("ods_" + mysql_db + "__" + table).lower() + ",time,0,1," + str(
+                random.randint(1, 30)) + ",day,yxl,ods_mysql/" + yaml_file + "\n"
         schedule_list.append(schedule)
     gen_schedule(schedule_list)
 
-def gen_schedule(schedule_list):
 
-    write2File("schedule.txt",schedule_list)
+def gen_schedule(schedule_list):
+    write2File("schedule.txt", schedule_list)
+
 
 def get_table_columns(connection, table):
     sql = "show full columns from " + table
