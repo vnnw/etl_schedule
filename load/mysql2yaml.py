@@ -82,7 +82,7 @@ def gen_sql(db, table, columns, table_comment):
 
 def get_table_comment(connection, table):
     sql = "show table status where name = %s"
-    status = run_sql_dict(connection, sql)
+    status = run_sql_dict(connection, sql, (table))
     if status:
         comment = status['Comment']
         return comment
