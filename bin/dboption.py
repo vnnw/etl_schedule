@@ -401,8 +401,23 @@ class DBOption(object):
                 # 判断是否存在,存在则删除
                 self.remove_dependency(job_name, dep_job)
                 cursor.execute(dep_job_sql, (job_name, dep_job.upper()))
+            # 删除触发
+            self.remove_stream(stream, job_name)
             stream_job_sql = "insert into t_etl_job_stream(job_name,stream_job) values(%s,%s)"
             cursor.execute(stream_job_sql, (stream, job_name))
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
+        except Exception, e:
+            self.logger.error(traceback.format_exc())
+            return 0
+
+    def remove_stream(self, stream_job, job_name):
+        try:
+            remove_sql = "delete from t_etl_job_stream where job_name = %s and stream_job = %s"
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(remove_sql, (stream_job, job_name))
             connection.commit()
             connection.close()
             return cursor.rowcount
