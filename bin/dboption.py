@@ -398,9 +398,24 @@ class DBOption(object):
             cursor.execute(etl_job_sql, (job_name, JOB_DONE, script, trigger_type, man))
             dep_job_sql = "insert into t_etl_job_dependency(job_name,dependency_job) values(%s,%s)"
             for dep_job in dep_jobs:
+                # 判断是否存在,存在则删除
+                self.remove_dependency(job_name, dep_job)
                 cursor.execute(dep_job_sql, (job_name, dep_job.upper()))
             stream_job_sql = "insert into t_etl_job_stream(job_name,stream_job) values(%s,%s)"
             cursor.execute(stream_job_sql, (stream, job_name))
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
+        except Exception, e:
+            self.logger.error(traceback.format_exc())
+            return 0
+
+    def remove_dependency(self, job_name, dep_job):
+        try:
+            remove_sql = "delete from t_etl_job_dependency where job_name = %s and dependency_job = %s"
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(remove_sql, (job_name, dep_job))
             connection.commit()
             connection.close()
             return cursor.rowcount
