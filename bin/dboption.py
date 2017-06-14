@@ -424,7 +424,7 @@ class DBOption(object):
 
     def remove_etl_dependency_job(self, job_name):
         try:
-            remove_sql = "delete from t_el_job_dependency where job_name = %s"
+            remove_sql = "delete from t_etl_job_dependency where job_name = %s"
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(remove_sql, (job_name,))
