@@ -411,16 +411,43 @@ class DBOption(object):
     # no use
     def remove_etl_job(self, job_name):
         try:
-            etl_job_sql = "delete from t_etl_job where job_name = %s"
+            remove_sql = "delete from t_etl_job where job_name = %s"
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
-            cursor.execute(etl_job_sql, (job_name))
+            cursor.execute(remove_sql, (job_name,))
             connection.commit()
             connection.close()
             return cursor.rowcount
         except Exception, e:
-            print e
+            self.logger.error(traceback.format_exc())
             return 0
+
+    def remove_etl_dependency_job(self, job_name):
+        try:
+            remove_sql = "delete from t_el_job_dependency where job_name = %s"
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(remove_sql, (job_name,))
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
+        except Exception, e:
+            self.logger.error(traceback.format_exc())
+            return 0
+
+    def remove_etl_stream_job(self, job_name):
+        try:
+            remove_sql = "delete from t_etl_job_stream where stream_job = %s"
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(remove_sql, (job_name,))
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
+        except Exception, e:
+            self.logger.error(traceback.format_exc())
+            return 0
+
 
     def get_before_job(self, job_name):
         try:
