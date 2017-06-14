@@ -49,7 +49,8 @@ class ETLUtil(object):
             else:
                 job_name = line_array[0].upper()
                 job_info = self.dboption.get_job_info(job_name)
-                if job_info:
+                job_trigger_info = self.dboption.get_etl_job_trigger(job_name)
+                if job_info or job_trigger_info:
                     #raise Exception("Job:" + job_name + " 已经存在")
                     print("Job:" + job_name + " 已经存在,需要删除后重新创建!")
                     self.remove_etl_job(job_name)
