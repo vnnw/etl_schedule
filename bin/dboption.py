@@ -448,6 +448,19 @@ class DBOption(object):
             self.logger.error(traceback.format_exc())
             return 0
 
+    def remove_etl_job_trigger(self, job_name):
+        try:
+            remove_sql = "delete from t_etl_job_trigger where job_name = %s"
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(remove_sql, (job_name,))
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
+        except Exception, e:
+            self.logger.error(traceback.format_exc())
+            return 0
+
 
     def get_before_job(self, job_name):
         try:
