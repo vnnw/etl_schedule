@@ -23,7 +23,7 @@ class ETLUtil(object):
             return False
         return True
 
-    def remove_job(self,job_name):
+    def remove_etl_job(self, job_name):
         # 删除时间触发
         self.dboption.remove_etl_job_trigger(job_name)
         # 删除 触发
@@ -35,7 +35,7 @@ class ETLUtil(object):
 
     def parse_line(self, line):
         if line is None or len(line.strip()) == 0:
-            #print("读取的记录为空")
+            # print("读取的记录为空")
             pass
         else:
             line = line.strip()
@@ -51,7 +51,7 @@ class ETLUtil(object):
                 job_info = self.dboption.get_job_info(job_name)
                 job_trigger_info = self.dboption.get_etl_job_trigger(job_name)
                 if job_info or job_trigger_info:
-                    #raise Exception("Job:" + job_name + " 已经存在")
+                    # raise Exception("Job:" + job_name + " 已经存在")
                     print("Job:" + job_name + " 已经存在,需要删除后重新创建!")
                     self.remove_etl_job(job_name)
                 trigger_type = line_array[1]
@@ -103,7 +103,8 @@ class ETLUtil(object):
                     stream_job = self.dboption.get_job_info(stream)
                     if stream_job is None:
                         raise Exception("Job:" + stream + " 不存在")
-                    code = self.dboption.save_depdency_trigger_job(job_name, trigger_type, add_job_dep_sets, stream, man,
+                    code = self.dboption.save_depdency_trigger_job(job_name, trigger_type, add_job_dep_sets, stream,
+                                                                   man,
                                                                    script)
                     if code == 1:
                         print("添加依赖触发Job 成功")
@@ -114,12 +115,6 @@ class ETLUtil(object):
         exists = os.path.exists(path)
         if not exists:
             raise Exception("脚本:" + path + " 不存在")
-
-    def remove_etl_job(self, job_name):
-        print("删除Job:" + job_name)
-        code = self.dboption.remove_etl_job(job_name)
-        if code == 1:
-            print("删除Job:" + job_name)
 
     def query_etl_job(self, job_name):
         print("查询Job:" + job_name)
@@ -159,7 +154,7 @@ class ETLUtil(object):
 if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    
+
     etl = ETLUtil()
 
     # args_array = "-p /Users/yxl/Desktop/job.txt".split(" ")
