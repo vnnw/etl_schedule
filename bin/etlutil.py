@@ -24,7 +24,8 @@ class ETLUtil(object):
         return True
 
     def remove_etl_job(self, job_name):
-        print("删除 job_name:" + job_name + " 不会删除触发执行的 job!!!")
+        stream_job = self.dboption.get_stream_job(job_name)
+        print("删除 job_name:" + job_name + " 不会删除触发执行的job:["+ ",".join(stream_job) + "]!!!")
         # 删除时间触发
         self.dboption.remove_etl_job_trigger(job_name)
         # 删除 触发
