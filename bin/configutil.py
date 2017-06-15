@@ -11,7 +11,7 @@ import os
 class ConfigUtil(object):
     def __init__(self):
         envpath = os.getenv("ETL_SCHEDULE_PATH_FAKE", "")
-        if envpath == "" or len(envpath) == 0: # test/config.ini 可以随意设置
+        if envpath == "" or len(envpath) == 0:  # test/config.ini 可以随意设置
             path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             config_path = path + "/config/test/config.ini"
         else:
@@ -46,3 +46,14 @@ class ConfigUtil(object):
             return default
         else:
             return value
+
+    def getBooleanOrElse(self, name, default):
+        value = self.config.get(name)
+        if value is None or len(value.strip()) == 0:
+            return default
+        else:
+            value = value.upper()
+            if value == "TRUE":
+                return True
+            else:
+                return False

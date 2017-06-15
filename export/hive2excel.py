@@ -260,7 +260,10 @@ if __name__ == '__main__':
     try:
         (name, tables, receivers_array) = split_args(options, args)
         excel_path = query_table(name, tables)
-        send_email(options.subject.strip(), options.content.strip(), excel_path, receivers_array)
+        if configUtil.getBooleanOrElse("send.email", True):
+            send_email(options.subject.strip(), options.content.strip(), excel_path, receivers_array)
+        else:
+            print("不需要发送邮件")
 
     except Exception, e:
         print traceback.format_exc()
