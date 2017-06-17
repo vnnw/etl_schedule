@@ -22,7 +22,7 @@ config_util = ConfigUtil()
 
 def get_today(tz=None):
     today = datetime.datetime.now()
-    today = today.replace(hour=0, minute=0, second=0)
+    today = today.replace(hour=0, minute=0, second=0, microsecond=0)
     if tz == "utc":
         today = today - datetime.timedelta(hours=8)
     return today
@@ -30,7 +30,7 @@ def get_today(tz=None):
 
 def get_yesterday(tz=None):
     today = datetime.datetime.now()
-    today = today.replace(hour=0, minute=0, second=0)
+    today = today.replace(hour=0, minute=0, second=0, microsecond=0)
     if tz == "utc":
         today = today - datetime.timedelta(hours=8)
     return today - datetime.timedelta(days=1)
