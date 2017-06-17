@@ -546,3 +546,18 @@ class DBOption(object):
         except Exception,e:
             self.logger.error(traceback.format_exc())
             return 0
+
+    def update_job_queue_complete_time(self, job_name):
+        try:
+            time = DateUtil.get_now()
+            current_date = DateUtil.get_now_fmt(None)
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor()
+            remove_sql = "update t_etl_job_queue set complete_time = %s where job_name = %s and run_date = %s"
+            cursor.execute(remove_sql, (time, job_name, current_date))
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
+        except Exception,e:
+            self.logger.error(traceback.format_exc())
+            return 0

@@ -208,6 +208,10 @@ class Executor(object):
                 pid = tmp_process_running[child]["pid"]
                 return_code = child.poll()
                 if return_code is not None:
+                    # 保存任务运行完成时间
+                    code = self.dboption.update_job_queue_complete_time(job_name)
+                    if code == 0:
+                        self.logger.error("更新任务运行完成时间异常")
                     if return_code == 0:
                         file_handler.flush()
                         file_handler.close()
