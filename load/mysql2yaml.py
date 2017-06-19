@@ -177,8 +177,8 @@ if __name__ == '__main__':
 
     print options
 
-    if options.db is None:
+    if options.db is None or options.path is None:
         optParser.print_help()
         sys.exit(1)
     else:
-        run(options.db, options.path, options.table)
+        run(options.db, options.path + "/gen", options.table)
