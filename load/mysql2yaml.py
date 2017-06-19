@@ -90,14 +90,15 @@ def get_table_comment(connection, table):
     else:
         return None
 
-
-def run(mysql_db, sql_dir, yaml_dir):
+def run(mysql_db, sql_dir, yaml_dir, stable):
     connection = Connection.get_mysql_connection(config_util, mysql_db)
     tables = get_tables(connection)
     table_comment_dict = read_table_comment()
     print table_comment_dict
     schedule_list = []
     for table in tables:
+        if stable and len(stable.strip) > 0 and stable != table:
+            break
         columns = get_table_columns(connection, table)
 
         comment = get_table_comment(connection, table)
@@ -150,4 +151,4 @@ if __name__ == '__main__':
     sys.setdefaultencoding('utf-8')
     db = "beeper_finance"
     table = ""
-    run(db, "sql", "yaml")
+    run(db, "sql", "yaml", table)
