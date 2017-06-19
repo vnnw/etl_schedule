@@ -6,7 +6,7 @@ import MySQLdb
 import random
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from optparse import OptionParser
 from export.hivetype import HiveType
 from export.connection import Connection
 from bin.configutil import ConfigUtil
@@ -14,14 +14,29 @@ from bin.configutil import ConfigUtil
 config_util = ConfigUtil()
 
 
+def get_option_parser():
+    usage = "usage: %prog [options] arg1 arg2"
+
+    parser = OptionParser(usage=usage)
+
+    parser.add_option("-d", "--from", dest="db", action="store", type="string", help="mysql database")
+    parser.add_option("-t", "--table", dest="table", action="store", help="database table")
+    parser.add_option("-p", "--path", dest="path", action="store",
+                      help="sql yaml base path")
+
+    return parser
+
+
 def read_table_comment():
-    file_handler = open("table_comment.txt", 'r')
-    table_comment_dict = {}
-    for line in file_handler.readlines():
-        print line
-        if line and len(line.strip()) > 0:
-            table_comment_dict[line.split("=")[0].strip()] = line.split("=")[1].strip()
-        file_handler.close()
+    path = "table_comment.txt"
+    if os.path.exists(path):
+        file_handler = open(path, 'r')
+        table_comment_dict = {}
+        for line in file_handler.readlines():
+            print line
+            if line and len(line.strip()) > 0:
+                table_comment_dict[line.split("=")[0].strip()] = line.split("=")[1].strip()
+            file_handler.close()
     return table_comment_dict
 
 
@@ -90,12 +105,17 @@ def get_table_comment(connection, table):
     else:
         return None
 
-def run(mysql_db, sql_dir, yaml_dir, stable):
-    connection = Connection.get_mysql_connection(config_util, mysql_db)
+
+def run(db, path, stable):
+    connection = Connection.get_mysql_connection(config_util, db)
     tables = get_tables(connection)
-    table_comment_dict = read_table_comment()
-    print table_comment_dict
     schedule_list = []
+    sql_dir = path + "/sql"
+    if not os.path.exists(sql_dir):
+        os.makedirs(sql_dir)
+    yaml_dir = path + "/yaml"
+    if not os.path.exists(yaml_dir):
+        os.makedirs(yaml_dir)
     for table in tables:
         if stable and len(stable.strip()) > 0 and stable != table:
             continue
@@ -107,18 +127,18 @@ def run(mysql_db, sql_dir, yaml_dir, stable):
             comment = "xxxx"
 
         sql = gen_sql(db, table, columns, comment)
-        sql_name = "ods_" + mysql_db + "__" + table + ".sql"
+        sql_name = "ods_" + db + "__" + table + ".sql"
         print "----" * 20
         write2File(sql_dir + "/" + sql_name, sql)
         yaml_file = gen_yaml(db, table, columns, yaml_dir)
-        schedule = ("ods_" + mysql_db + "__" + table).lower() + ",time,0,1," + str(
+        schedule = ("ods_" + db + "__" + table).lower() + ",time,0,1," + str(
                 random.randint(1, 30)) + ",day,yxl,ods_mysql/" + yaml_file + "\n"
         schedule_list.append(schedule)
-    gen_schedule(schedule_list)
+    gen_schedule(path + "/schedule.txt", schedule_list)
 
 
-def gen_schedule(schedule_list):
-    write2File("schedule.txt", schedule_list)
+def gen_schedule(schedule_path, schedule_list):
+    write2File(schedule_path, schedule_list)
 
 
 def get_table_columns(connection, table):
@@ -150,6 +170,15 @@ def get_tables(connection):
 if __name__ == '__main__':
     reload(sys)
     sys.setdefaultencoding('utf-8')
-    db = "beeper_finance"
-    table = ""
-    run(db, "sql", "yaml", table)
+
+    optParser = get_option_parser()
+
+    options, args = optParser.parse_args(sys.argv[1:])
+
+    print options
+
+    if options.db is None:
+        optParser.print_help()
+        sys.exit(1)
+    else:
+        run(options.db, options.path, options.table)
