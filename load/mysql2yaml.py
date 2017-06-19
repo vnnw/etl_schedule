@@ -97,8 +97,9 @@ def run(mysql_db, sql_dir, yaml_dir, stable):
     print table_comment_dict
     schedule_list = []
     for table in tables:
-        if stable and len(stable.strip) > 0 and stable != table:
-            break
+        if stable and len(stable.strip()) > 0 and stable != table:
+            continue
+
         columns = get_table_columns(connection, table)
 
         comment = get_table_comment(connection, table)
