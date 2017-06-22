@@ -121,7 +121,7 @@ def run(db, path, stable):
     mkdirs([sql_dir + "/schema/ods_mysql",
             sql_dir + "/schema/fact_beeper",
             sql_dir + "/schema/dim_beeper",
-            sql_dir + "/ods_mysql", sql_dir + "/fact_beeper", sql_dir + "/dim_beeper"])
+            sql_dir + "/sql/ods_mysql", sql_dir + "/sql/fact_beeper", sql_dir + "/sql/dim_beeper"])
 
     for table in tables:
         if stable and len(stable.strip()) > 0 and stable != table:
