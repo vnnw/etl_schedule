@@ -141,7 +141,7 @@ def run(db, path, stable):
 def gen_fact(db, table, columns, comment, sql_dir):
     include_column = []
     create_column = []
-    table_name = "fact_beeper.fact_" + db + "_" + table
+    table_name = "fact_beeper.fact_beeper" + "_" + table
 
     for column in columns:
         (name, typestring, comment) = column
@@ -156,7 +156,7 @@ def gen_fact(db, table, columns, comment, sql_dir):
     create_sql_str += "\ncomment \"" + comment + "\""
     create_sql_str += "\nstored as parquet ;"
 
-    sql_name = "fact_beeper_" + db + "_" + table + ".sql"
+    sql_name = "fact_beeper" + "_" + table + ".sql"
 
     select_sql_str = "insert overwrite table " + table_name + "\n" + "    " + "select"
     select_column = ",\n".join(include_column)
@@ -172,7 +172,7 @@ def gen_fact(db, table, columns, comment, sql_dir):
 def gen_dim(db, table, columns, comment, sql_dir):
     include_column = []
     create_column = []
-    table_name = "dim_beeper.dim_" + db + "_" + table
+    table_name = "dim_beeper.dim_beeper" + "_" + table
     for column in columns:
         (name, typestring, comment) = column
         ctype = typestring.split("(")[0]
