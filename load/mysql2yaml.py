@@ -68,7 +68,7 @@ def gen_yaml(db, table, columns, yaml_dir):
     return yaml_file
 
 
-def gen_sql(db, table, columns, table_comment):
+def gen_sql(db, table, columns, table_comment, sql_dir):
     print "-" * 20
     print table, table_comment
     include_column = []
@@ -89,10 +89,10 @@ def gen_sql(db, table, columns, table_comment):
     create_sql_str += "\npartitioned by(p_day string)"
     create_sql_str += "\nstored as orc ;"
 
-    print "ods_" + db + "__" + table
-    print ",".join(include_column)
-
-    return create_sql_str
+    sql_name = "ods_" + db + "__" + table + ".sql"
+    sql_file = sql_dir + "/schema/ods_mysql" + "/" + sql_name
+    write2File(sql_file, create_sql_str)
+    return sql_file
 
 
 def get_table_comment(connection, table):
@@ -106,16 +106,23 @@ def get_table_comment(connection, table):
         return None
 
 
+def mkdirs(paths):
+    for path in paths:
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+
 def run(db, path, stable):
     connection = Connection.get_mysql_connection(config_util, db)
     tables = get_tables(connection)
     schedule_list = []
-    sql_dir = path + "/sql"
-    if not os.path.exists(sql_dir):
-        os.makedirs(sql_dir)
-    yaml_dir = path + "/yaml"
-    if not os.path.exists(yaml_dir):
-        os.makedirs(yaml_dir)
+    sql_dir = path
+
+    mkdirs([sql_dir + "/schema/ods_mysql",
+            sql_dir + "/schema/fact_beeper",
+            sql_dir + "/schema/dim_beeper",
+            sql_dir + "/ods_mysql", sql_dir + "/fact_beeper", sql_dir + "/dim_beeper"])
+
     for table in tables:
         if stable and len(stable.strip()) > 0 and stable != table:
             continue
@@ -126,15 +133,72 @@ def run(db, path, stable):
         if not comment or len(comment.strip()) == 0:
             comment = "xxxx"
 
-        sql = gen_sql(db, table, columns, comment)
-        sql_name = "ods_" + db + "__" + table + ".sql"
-        print "----" * 20
-        write2File(sql_dir + "/" + sql_name, sql)
-        yaml_file = gen_yaml(db, table, columns, yaml_dir)
-        schedule = ("ods_" + db + "__" + table).lower() + ",time,0,1," + str(
-                random.randint(1, 30)) + ",day,yxl,ods_mysql/" + yaml_file + "\n"
-        schedule_list.append(schedule)
-    gen_schedule(path + "/schedule.txt", schedule_list)
+        gen_sql(db, table, columns, comment, sql_dir)
+        gen_fact(db, table, columns, comment, sql_dir)
+        gen_dim(db, table, columns, comment, sql_dir)
+
+
+def gen_fact(db, table, columns, comment, sql_dir):
+    include_column = []
+    create_column = []
+    table_name = "fact_beeper.fact_" + db + "_" + table
+
+    for column in columns:
+        (name, typestring, comment) = column
+        ctype = typestring.split("(")[0]
+        include_column.append(name)
+        create_column.append(
+                "    `" + str(name) + "` " + str(HiveType.change_type(ctype)).strip() + " comment \"" + str(
+                        comment).strip() + "\"")
+    create_column_str = ",\n".join(create_column)
+    create_sql_str = ""
+    create_sql_str += "create external table if not exists " + table_name + " ( \n" + create_column_str + " )"
+    create_sql_str += "\ncomment \"" + comment + "\""
+    create_sql_str += "\nstored as parquet ;"
+
+    sql_name = "fact_beeper_" + db + "_" + table + ".sql"
+
+    select_sql_str = "insert overwrite table " + table_name + "\n" + "    " + "select"
+    select_column = ",\n".join(include_column)
+    select_sql_str = select_sql_str + select_column + "\n" + "    from " + table_name + ";"
+
+    create_sql_file = sql_dir + "/schema/fact_beeper/" + sql_name
+    write2File(create_sql_file, create_sql_str)
+
+    select_sql_file = sql_dir + "/sql/fact_beeper/" + sql_name
+    write2File(select_sql_file, select_sql_str)
+
+
+def gen_dim(db, table, columns, comment, sql_dir):
+    include_column = []
+    create_column = []
+    table_name = "dim_beeper.dim_" + db + "_" + table
+    for column in columns:
+        (name, typestring, comment) = column
+        ctype = typestring.split("(")[0]
+        include_column.append(name)
+        create_column.append(
+                "    `" + str(name) + "` " + str(HiveType.change_type(ctype)).strip() + " comment \"" + str(
+                        comment).strip() + "\"")
+    create_column_str = ",\n".join(create_column)
+    create_sql_str = ""
+    # create_sql_str += "drop table if exists " + table_name + ";\n"
+    create_sql_str += "create external table if not exists " + table_name + " ( \n" + create_column_str + " )"
+    create_sql_str += "\ncomment \"" + comment + "\""
+    create_sql_str += "\npartitioned by(p_day string)"
+    create_sql_str += "\nstored as parquet ;"
+
+    select_sql_str = "insert overwrite table " + table_name + " partition(p_day=${yesterday}" + "\n" + "    " + "select"
+    select_column = ",\n".join(include_column)
+    select_sql_str = select_sql_str + select_column + "\n" + "    from " + table_name + ";"
+
+    sql_name = "dim_beeper_" + db + "_" + table + ".sql"
+
+    create_sql_file = sql_dir + "/schema/dim_beeper" + "/" + sql_name
+    write2File(create_sql_file, create_sql_str)
+
+    select_sql_file = sql_dir + "/sql/dim_beeper/" + sql_name
+    write2File(select_sql_file, select_sql_str)
 
 
 def gen_schedule(schedule_path, schedule_list):
