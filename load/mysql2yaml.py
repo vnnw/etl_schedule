@@ -138,7 +138,7 @@ def run(db, path, stable):
         gen_dim(db, table, columns, comment, sql_dir)
 
 
-def gen_fact(db, table, columns, comment, sql_dir):
+def gen_fact(db, table, columns, table_comment, sql_dir):
     include_column = []
     create_column = []
     table_name = "fact_beeper.fact_beeper" + "_" + table
@@ -153,7 +153,7 @@ def gen_fact(db, table, columns, comment, sql_dir):
     create_column_str = ",\n".join(create_column)
     create_sql_str = ""
     create_sql_str += "create external table if not exists " + table_name + " ( \n" + create_column_str + " )"
-    create_sql_str += "\ncomment \"" + comment + "\""
+    create_sql_str += "\ncomment \"" + table_comment + "\""
     create_sql_str += "\nstored as parquet ;"
 
     sql_name = "fact_beeper" + "_" + table + ".sql"
@@ -170,7 +170,7 @@ def gen_fact(db, table, columns, comment, sql_dir):
     write2File(select_sql_file, select_sql_str)
 
 
-def gen_dim(db, table, columns, comment, sql_dir):
+def gen_dim(db, table, columns, table_comment, sql_dir):
     include_column = []
     create_column = []
     table_name = "dim_beeper.dim_beeper" + "_" + table
@@ -185,7 +185,7 @@ def gen_dim(db, table, columns, comment, sql_dir):
     create_sql_str = ""
     # create_sql_str += "drop table if exists " + table_name + ";\n"
     create_sql_str += "create external table if not exists " + table_name + " ( \n" + create_column_str + " )"
-    create_sql_str += "\ncomment \"" + comment + "\""
+    create_sql_str += "\ncomment \"" + table_comment + "\""
     create_sql_str += "\npartitioned by(p_day string)"
     create_sql_str += "\nstored as parquet ;"
 
