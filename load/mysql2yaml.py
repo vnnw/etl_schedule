@@ -160,7 +160,8 @@ def gen_fact(db, table, columns, comment, sql_dir):
 
     select_sql_str = "insert overwrite table " + table_name + "\n" + "    " + "select" + "\n"
     select_column = ",\n".join(include_column)
-    select_sql_str = select_sql_str + select_column + "\n" + "    from " + table_name + ";"
+    ods_table = "ods_mysql.ods_" + db + "__" + table
+    select_sql_str = select_sql_str + select_column + "\n" + "    from " + ods_table + ";\n"
 
     create_sql_file = sql_dir + "/schema/fact_beeper/" + sql_name
     write2File(create_sql_file, create_sql_str)
@@ -191,7 +192,8 @@ def gen_dim(db, table, columns, comment, sql_dir):
     select_sql_str = "insert overwrite table " + table_name + " partition(p_day=${yesterday})" \
                         + "\n" + "    " + "select" + "\n"
     select_column = ",\n".join(include_column)
-    select_sql_str = select_sql_str + select_column + "\n" + "    from " + table_name + ";"
+    ods_table = "ods_mysql.ods_" + db + "__" + table
+    select_sql_str = select_sql_str + select_column + "\n" + "    from " + ods_table + ";\n"
 
     sql_name = "dim_beeper" + "_" + table + ".sql"
 
