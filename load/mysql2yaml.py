@@ -192,7 +192,7 @@ def gen_dim(db, table, columns, comment, sql_dir):
     select_column = ",\n".join(include_column)
     select_sql_str = select_sql_str + select_column + "\n" + "    from " + table_name + ";"
 
-    sql_name = "dim_beeper_" + db + "_" + table + ".sql"
+    sql_name = "dim_beeper" + "_" + table + ".sql"
 
     create_sql_file = sql_dir + "/schema/dim_beeper" + "/" + sql_name
     write2File(create_sql_file, create_sql_str)
