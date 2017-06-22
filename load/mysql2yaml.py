@@ -146,7 +146,7 @@ def gen_fact(db, table, columns, comment, sql_dir):
     for column in columns:
         (name, typestring, comment) = column
         ctype = typestring.split("(")[0]
-        include_column.append(name)
+        include_column.append(("    " * 2) + name)
         create_column.append(
                 "    `" + str(name) + "` " + str(HiveType.change_type(ctype)).strip() + " comment \"" + str(
                         comment).strip() + "\"")
@@ -176,7 +176,7 @@ def gen_dim(db, table, columns, comment, sql_dir):
     for column in columns:
         (name, typestring, comment) = column
         ctype = typestring.split("(")[0]
-        include_column.append(name)
+        include_column.append(("    " * 2) + name)
         create_column.append(
                 "    `" + str(name) + "` " + str(HiveType.change_type(ctype)).strip() + " comment \"" + str(
                         comment).strip() + "\"")
@@ -188,7 +188,8 @@ def gen_dim(db, table, columns, comment, sql_dir):
     create_sql_str += "\npartitioned by(p_day string)"
     create_sql_str += "\nstored as parquet ;"
 
-    select_sql_str = "insert overwrite table " + table_name + " partition(p_day=${yesterday}" + "\n" + "    " + "select"
+    select_sql_str = "insert overwrite table " + table_name + " partition(p_day=${yesterday}" \
+                        + "\n" + "    " + "select" + "\n"
     select_column = ",\n".join(include_column)
     select_sql_str = select_sql_str + select_column + "\n" + "    from " + table_name + ";"
 
