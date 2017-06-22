@@ -158,7 +158,7 @@ def gen_fact(db, table, columns, comment, sql_dir):
 
     sql_name = "fact_beeper" + "_" + table + ".sql"
 
-    select_sql_str = "insert overwrite table " + table_name + "\n" + "    " + "select"
+    select_sql_str = "insert overwrite table " + table_name + "\n" + "    " + "select" + "\n"
     select_column = ",\n".join(include_column)
     select_sql_str = select_sql_str + select_column + "\n" + "    from " + table_name + ";"
 
@@ -188,7 +188,7 @@ def gen_dim(db, table, columns, comment, sql_dir):
     create_sql_str += "\npartitioned by(p_day string)"
     create_sql_str += "\nstored as parquet ;"
 
-    select_sql_str = "insert overwrite table " + table_name + " partition(p_day=${yesterday}" \
+    select_sql_str = "insert overwrite table " + table_name + " partition(p_day=${yesterday})" \
                         + "\n" + "    " + "select" + "\n"
     select_column = ",\n".join(include_column)
     select_sql_str = select_sql_str + select_column + "\n" + "    from " + table_name + ";"
