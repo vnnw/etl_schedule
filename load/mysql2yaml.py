@@ -50,7 +50,7 @@ def write2File(file, sql):
 def gen_yaml(db, table, columns, yaml_dir):
     file_handler = open("template.yml", "r")
     yaml_file = "ods_" + db + "__" + table + ".yml"
-    file_handler_write = open(yaml_dir + "/" + yaml_file, "w")
+    file_handler_write = open(yaml_dir + "/yaml/" + yaml_file, "w")
     for line in file_handler.readlines():
         if line.strip() == "mysql_db:":
             line = line.rstrip() + " " + db + "." + table + "\n"
