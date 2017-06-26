@@ -65,7 +65,6 @@ def gen_yaml(db, table, columns, yaml_dir):
         file_handler_write.writelines(line)
     file_handler.close()
     file_handler_write.close()
-    return yaml_file
 
 
 def gen_sql(db, table, columns, table_comment, sql_dir):
@@ -121,7 +120,10 @@ def run(db, path, stable):
     mkdirs([sql_dir + "/schema/ods_mysql",
             sql_dir + "/schema/fact_beeper",
             sql_dir + "/schema/dim_beeper",
-            sql_dir + "/sql/ods_mysql", sql_dir + "/sql/fact_beeper", sql_dir + "/sql/dim_beeper"])
+            sql_dir + "/sql/ods_mysql",
+            sql_dir + "/sql/fact_beeper",
+            sql_dir + "/sql/dim_beeper",
+            sql_dir + "/yaml"])
 
     for table in tables:
         if stable and len(stable.strip()) > 0 and stable != table:
@@ -136,6 +138,7 @@ def run(db, path, stable):
         gen_sql(db, table, columns, comment, sql_dir)
         gen_fact(db, table, columns, comment, sql_dir)
         gen_dim(db, table, columns, comment, sql_dir)
+        gen_yaml(db, table, columns, sql_dir)
 
 
 def gen_fact(db, table, columns, table_comment, sql_dir):
