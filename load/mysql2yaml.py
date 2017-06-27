@@ -193,7 +193,7 @@ def gen_dim(db, table, columns, table_comment, sql_dir):
     create_sql_str += "\nstored as parquet ;"
 
     select_sql_str = "insert overwrite table " + table_name + " partition(p_day=${yesterday})" \
-                        + "\n" + "    " + "select" + "\n"
+                     + "\n" + "    " + "select" + "\n"
     select_column = ",\n".join(include_column)
     ods_table = "ods_mysql.ods_" + db + "__" + table
     select_sql_str = select_sql_str + select_column + "\n" + "    from " + ods_table + ";\n"

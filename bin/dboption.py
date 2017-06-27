@@ -561,3 +561,15 @@ class DBOption(object):
         except Exception,e:
             self.logger.error(traceback.format_exc())
             return 0
+
+    def execute_sql(self,sql, param):
+        try:
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor()
+            cursor.execute(sql, param)
+            connection.commit()
+            connection.close()
+            return cursor.rowcount
+        except Exception,e:
+            self.logger.error(traceback.format_exc())
+            return 0

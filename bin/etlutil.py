@@ -155,6 +155,41 @@ class ETLUtil(object):
             if line is not None and len(line) > 0 and not line.startswith("#"):
                 self.parse_line(line)
 
+    def rename_job(self,etl_job_name):
+        etl_job_array = etl_job_name.strip().split(" ")
+        if etl_job_array is None or len(etl_job_array) != 3:
+            raise Exception("修改job 名称格式: 原名称 新名称 脚本相对路径")
+        from_job = etl_job_array[0].strip()
+        to_job = etl_job_array[1].strip()
+        print("修改的名称:" + from_job + " -> " + to_job)
+        from_job_info = self.dboption.get_job_info(from_job)
+        if not from_job_info:
+            raise Exception("原 Job 名称 " + from_job + " 不存在")
+        to_job_info = self.dboption.get_job_info(to_job)
+        if to_job_info:
+            raise Exception("新 Job 名称 " + from_job + " 已存在")
+
+        # trigger
+        update_trigger = "update t_etl_job_trigger set job_name = %s where job_name = %s"
+        self.dboption.execute_sql(update_trigger, (to_job, from_job))
+
+        # stream
+        update_stream_1 = "update t_etl_job_stream set job_name = %s where job_name = %s"
+        self.dboption.execute_sql(update_stream_1, (to_job, from_job))
+        update_stream_2 = "update t_etl_job_stream set stream_job = %s where stream_job = %s"
+        self.dboption.execute_sql(update_stream_2, (to_job, from_job))
+
+        # dependency
+        update_dependency_1 = "update t_etl_job_dependency set job_name = %s where job_name = %s"
+        self.dboption.execute_sql(update_dependency_1, (to_job, from_job))
+        update_dependency_2 = "update t_etl_job_dependency set dependency_job = %s where dependency_job = %s"
+        self.dboption.execute_sql(update_dependency_2, (to_job, from_job))
+
+        # job
+        update_job = "update t_etl_job set job_name = %s where job_name = %s"
+        self.dboption.execute_sql(update_job, (to_job, from_job))
+
+        self.query_etl_job(to_job)
 
 if __name__ == '__main__':
     reload(sys)
@@ -173,6 +208,8 @@ if __name__ == '__main__':
         elif option in ["--query", "-q"]:
             etl.query_etl_job(value.upper())
         elif option in ["--delete", "-d"]:
+            etl.remove_etl_job(value.upper())
+        elif option in ["--rename", "-r"]:
             etl.remove_etl_job(value.upper())
         else:
             print("nothing to do")
