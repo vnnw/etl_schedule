@@ -201,7 +201,7 @@ if __name__ == '__main__':
     # args_array = "-q stg_t_test_1".split(" ")
     # opts,args = getopt.getopt(args_array, "p:q:", ["help", "path=","query="])
 
-    opts, args = getopt.getopt(sys.argv[1:], "p:q:d:", ["help", "path=", "query=", "delete="])
+    opts, args = getopt.getopt(sys.argv[1:], "p:q:d:r:", ["help", "path=", "query=", "delete=", "rename"])
     for option, value in opts:
         if option in ["--path", "-p"]:
             etl.read_file(value.strip())
