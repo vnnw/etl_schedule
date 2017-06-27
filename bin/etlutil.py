@@ -169,6 +169,10 @@ class ETLUtil(object):
         if to_job_info:
             raise Exception("新 Job 名称 " + from_job + " 已存在")
 
+        yaml_file = etl_job_array[2].strip()
+        script_path = self.config.get("job.script.path") + "/script/" + yaml_file
+        self.check_script_path(script_path)
+
         # trigger
         update_trigger = "update t_etl_job_trigger set job_name = %s where job_name = %s"
         self.dboption.execute_sql(update_trigger, (to_job, from_job))
@@ -186,8 +190,8 @@ class ETLUtil(object):
         self.dboption.execute_sql(update_dependency_2, (to_job, from_job))
 
         # job
-        update_job = "update t_etl_job set job_name = %s where job_name = %s"
-        self.dboption.execute_sql(update_job, (to_job, from_job))
+        update_job = "update t_etl_job set job_name = %s , job_script=%s where job_name = %s"
+        self.dboption.execute_sql(update_job, (to_job, yaml_file, from_job))
 
         self.query_etl_job(to_job)
 
