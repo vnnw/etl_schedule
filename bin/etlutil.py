@@ -210,7 +210,7 @@ if __name__ == '__main__':
         elif option in ["--delete", "-d"]:
             etl.remove_etl_job(value.upper())
         elif option in ["--rename", "-r"]:
-            etl.remove_etl_job(value.upper())
+            etl.rename_job(value.upper())
         else:
             print("nothing to do")
             sys.exit(0)
