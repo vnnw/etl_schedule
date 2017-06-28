@@ -180,10 +180,10 @@ def run(db, path, stable):
         ods_schedule = gen_yaml(db, table, columns, sql_dir)
         dim_schedule = gen_dim_yaml(db, table, sql_dir)
         fact_schedule = gen_fact_yaml(db, table, sql_dir)
-        schedule_list.append(ods_schedule + "\n")
-        schedule_list.append(dim_schedule + "\n")
-        schedule_list.append(fact_schedule + "\n")
-    gen_schedule(sql_dir, schedule_list)
+        schedule_list.append(ods_schedule)
+        schedule_list.append(dim_schedule)
+        schedule_list.append(fact_schedule)
+    gen_schedule(sql_dir, "\n".join(schedule_list))
 
 
 def gen_fact(db, table, columns, table_comment, sql_dir):
