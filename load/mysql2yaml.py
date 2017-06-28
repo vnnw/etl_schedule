@@ -82,8 +82,7 @@ def gen_dim_yaml(db, table, yaml_dir):
     file_handler_write.close()
     minute = random.randint(10, 50)
     ods_schedule = "ods_" + db + "__" + table
-    schedule = "dim_beeper_" + table + ",dependency," + ods_schedule + "," + ods_schedule + "," \
-               + str(minute) + ",day,yxl,dim_beeper/" + yaml_file
+    schedule = "dim_beeper_" + table + ",dependency," + ods_schedule + "," + ods_schedule + ",yxl,dim_beeper/" + yaml_file
     return schedule
 
 
@@ -93,14 +92,12 @@ def gen_fact_yaml(db, table, yaml_dir):
     file_handler_write = open(yaml_dir + "/script/fact_beeper/" + yaml_file, "w")
     for line in file_handler.readlines():
         if line.strip() == "path:":
-            line = line.rstrip() + " dim_beeper/fact_beeper_" + table + ".sql" + "\n"
+            line = line.rstrip() + " fact_beeper/fact_beeper_" + table + ".sql" + "\n"
         file_handler_write.writelines(line)
     file_handler.close()
     file_handler_write.close()
-    minute = random.randint(10, 50)
     ods_schedule = "ods_" + db + "__" + table
-    schedule = "fact_beeper_" + table + ",dependency," + ods_schedule + "," + ods_schedule + "," \
-               + str(minute) + ",day,yxl,fact_beeper/" + yaml_file
+    schedule = "fact_beeper_" + table + ",dependency," + ods_schedule + "," + ods_schedule + ",yxl,fact_beeper/" + yaml_file
     return schedule
 
 
@@ -209,7 +206,7 @@ def gen_fact(db, table, columns, table_comment, sql_dir):
     select_sql_str = "insert overwrite table " + table_name + "\n" + "    " + "select" + "\n"
     select_column = ",\n".join(include_column)
     ods_table = "ods_mysql.ods_" + db + "__" + table
-    select_sql_str = select_sql_str + select_column + "\n" + "    from " + ods_table + ";\n"
+    select_sql_str = select_sql_str + select_column + "\n" + "    from " + ods_table + " where p_day = ${yesterday};\n"
 
     create_sql_file = sql_dir + "/schema/fact_beeper/" + sql_name
     write2File(create_sql_file, create_sql_str)
