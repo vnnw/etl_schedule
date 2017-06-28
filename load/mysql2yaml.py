@@ -70,7 +70,7 @@ def gen_yaml(db, table, columns, yaml_dir):
     return schedule
 
 
-def gen_dim_yaml(db, table, columns, yaml_dir):
+def gen_dim_yaml(db, table, yaml_dir):
     file_handler = open("dim_fact_template.yml", "r")
     yaml_file = "dim_beeper_" + table + ".yml"
     file_handler_write = open(yaml_dir + "/script/dim_beeper/" + yaml_file, "w")
@@ -87,7 +87,7 @@ def gen_dim_yaml(db, table, columns, yaml_dir):
     return schedule
 
 
-def gen_fact_yaml(db, table, columns, yaml_dir):
+def gen_fact_yaml(db, table, yaml_dir):
     file_handler = open("dim_fact_template.yml", "r")
     yaml_file = "fact_beeper_" + table + ".yml"
     file_handler_write = open(yaml_dir + "/script/fact_beeper/" + yaml_file, "w")
