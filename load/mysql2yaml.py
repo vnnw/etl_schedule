@@ -50,7 +50,7 @@ def write2File(file, sql):
 def gen_yaml(db, table, columns, yaml_dir):
     file_handler = open("template.yml", "r")
     yaml_file = "ods_" + db + "__" + table + ".yml"
-    file_handler_write = open(yaml_dir + "/yaml/" + yaml_file, "w")
+    file_handler_write = open(yaml_dir + "/script/ods_mysql/" + yaml_file, "w")
     for line in file_handler.readlines():
         if line.strip() == "mysql_db:":
             line = line.rstrip() + " " + db + "." + table + "\n"
@@ -65,6 +65,43 @@ def gen_yaml(db, table, columns, yaml_dir):
         file_handler_write.writelines(line)
     file_handler.close()
     file_handler_write.close()
+    minute = random.randint(10, 50)
+    schedule = "ods_" + db + "__" + table + ",time,0,1," + str(minute) + ",day,yxl,ods_mysql/" + yaml_file
+    return schedule
+
+
+def gen_dim_yaml(db, table, columns, yaml_dir):
+    file_handler = open("dim_fact_template.yml", "r")
+    yaml_file = "dim_beeper_" + table + ".yml"
+    file_handler_write = open(yaml_dir + "/script/dim_beeper/" + yaml_file, "w")
+    for line in file_handler.readlines():
+        if line.strip() == "path:":
+            line = line.rstrip() + " dim_beeper/dim_beeper_" + table + ".sql" + "\n"
+        file_handler_write.writelines(line)
+    file_handler.close()
+    file_handler_write.close()
+    minute = random.randint(10, 50)
+    ods_schedule = "ods_" + db + "__" + table
+    schedule = "dim_beeper_" + table + ",dependency," + ods_schedule + "," + ods_schedule + "," \
+               + str(minute) + ",day,yxl,dim_beeper/" + yaml_file
+    return schedule
+
+
+def gen_fact_yaml(db, table, columns, yaml_dir):
+    file_handler = open("dim_fact_template.yml", "r")
+    yaml_file = "fact_beeper_" + table + ".yml"
+    file_handler_write = open(yaml_dir + "/script/fact_beeper/" + yaml_file, "w")
+    for line in file_handler.readlines():
+        if line.strip() == "path:":
+            line = line.rstrip() + " dim_beeper/fact_beeper_" + table + ".sql" + "\n"
+        file_handler_write.writelines(line)
+    file_handler.close()
+    file_handler_write.close()
+    minute = random.randint(10, 50)
+    ods_schedule = "ods_" + db + "__" + table
+    schedule = "fact_beeper_" + table + ",dependency," + ods_schedule + "," + ods_schedule + "," \
+               + str(minute) + ",day,yxl,fact_beeper/" + yaml_file
+    return schedule
 
 
 def gen_sql(db, table, columns, table_comment, sql_dir):
@@ -123,7 +160,9 @@ def run(db, path, stable):
             sql_dir + "/sql/ods_mysql",
             sql_dir + "/sql/fact_beeper",
             sql_dir + "/sql/dim_beeper",
-            sql_dir + "/yaml"])
+            sql_dir + "/script/dim_beeper",
+            sql_dir + "/script/fact_beeper",
+            sql_dir + "/script/ods_mysql"])
 
     for table in tables:
         if stable and len(stable.strip()) > 0 and stable != table:
@@ -138,7 +177,13 @@ def run(db, path, stable):
         gen_sql(db, table, columns, comment, sql_dir)
         gen_fact(db, table, columns, comment, sql_dir)
         gen_dim(db, table, columns, comment, sql_dir)
-        gen_yaml(db, table, columns, sql_dir)
+        ods_schedule = gen_yaml(db, table, columns, sql_dir)
+        dim_schedule = gen_dim_yaml(db, table, sql_dir)
+        fact_schedule = gen_fact_yaml(db, table, sql_dir)
+        schedule_list.append(ods_schedule)
+        schedule_list.append(dim_schedule)
+        schedule_list.append(fact_schedule)
+    gen_schedule(sql_dir, schedule_list)
 
 
 def gen_fact(db, table, columns, table_comment, sql_dir):
@@ -149,7 +194,7 @@ def gen_fact(db, table, columns, table_comment, sql_dir):
     for column in columns:
         (name, typestring, comment) = column
         ctype = typestring.split("(")[0]
-        include_column.append(("    " * 2) + name)
+        include_column.append(("    " * 2) + "`" + name + "`")
         create_column.append(
                 "    `" + str(name) + "` " + str(HiveType.change_type(ctype)).strip() + " comment \"" + str(
                         comment).strip() + "\"")
@@ -180,7 +225,7 @@ def gen_dim(db, table, columns, table_comment, sql_dir):
     for column in columns:
         (name, typestring, comment) = column
         ctype = typestring.split("(")[0]
-        include_column.append(("    " * 2) + name)
+        include_column.append(("    " * 2) + "`" + name + "`")
         create_column.append(
                 "    `" + str(name) + "` " + str(HiveType.change_type(ctype)).strip() + " comment \"" + str(
                         comment).strip() + "\"")
@@ -196,7 +241,7 @@ def gen_dim(db, table, columns, table_comment, sql_dir):
                      + "\n" + "    " + "select" + "\n"
     select_column = ",\n".join(include_column)
     ods_table = "ods_mysql.ods_" + db + "__" + table
-    select_sql_str = select_sql_str + select_column + "\n" + "    from " + ods_table + ";\n"
+    select_sql_str = select_sql_str + select_column + "\n" + "    from " + ods_table + "  where p_day = ${yesterday};\n"
 
     sql_name = "dim_beeper" + "_" + table + ".sql"
 
@@ -208,7 +253,7 @@ def gen_dim(db, table, columns, table_comment, sql_dir):
 
 
 def gen_schedule(schedule_path, schedule_list):
-    write2File(schedule_path, schedule_list)
+    write2File(schedule_path + "/schedule.txt", schedule_list)
 
 
 def get_table_columns(connection, table):
