@@ -4,11 +4,11 @@ import os
 import sys
 import MySQLdb
 from optparse import OptionParser
-from bin.configutil import ConfigUtil
-from export.connection import Connection
-
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from bin.configutil import ConfigUtil
+from export.connection import Connection
 
 config_util = ConfigUtil()
 
