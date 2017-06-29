@@ -169,7 +169,7 @@ class ETLUtil(object):
         if to_job_info:
             raise Exception("新 Job 名称 " + from_job + " 已存在")
 
-        yaml_file = etl_job_array[2].strip()
+        yaml_file = etl_job_array[2].strip().lower()
         script_path = self.config.get("job.script.path") + "/script/" + yaml_file
         self.check_script_path(script_path)
 

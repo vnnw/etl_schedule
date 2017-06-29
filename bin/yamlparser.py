@@ -150,6 +150,8 @@ class YamlParser(object):
             command_list.append(command_value["mongo_db"])
             command_list.append("--to")
             command_list.append(command_value["hive_db"])
+            command_list.append("--init")
+            command_list.append(init_day)
             vars = {}
             if command_value.has_key("vars") and command_value["vars"]:
                 vars = command_value["vars"]

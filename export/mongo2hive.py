@@ -16,59 +16,60 @@ import datetime
 from hivetype import HiveType
 from bin.configutil import ConfigUtil
 from connection import Connection
+from bin.dateutil import DateUtil
 
 config_util = ConfigUtil()
 
 
-def get_today(tz=None):
-    today = datetime.datetime.now()
+def get_today(tz=None, init_day=None):
+    today = DateUtil.parse_date(init_day, None)
     today = today.replace(hour=0, minute=0, second=0, microsecond=0)
     if tz == "utc":
         today = today - datetime.timedelta(hours=8)
     return today
 
 
-def get_yesterday(tz=None):
-    today = datetime.datetime.now()
+def get_yesterday(tz=None, init_day=None):
+    today = DateUtil.parse_date(init_day, None)
     today = today.replace(hour=0, minute=0, second=0, microsecond=0)
     if tz == "utc":
         today = today - datetime.timedelta(hours=8)
     return today - datetime.timedelta(days=1)
 
 
-def get_interval_day(interval, tz=None):
-    today = datetime.datetime.now()
+def get_interval_day(interval, tz=None, init_day=None):
+    today = DateUtil.parse_date(init_day, None)
     today = today.replace(hour=0, minute=0, second=0)
     if tz == "utc":
         today = today - datetime.timedelta(hours=8)
     return today - datetime.timedelta(days=interval)
 
 
-def replace_query_utc(obj):
+def replace_query_utc(obj, init_day):
     for param_key, param_value in obj.items():
         if param_value == '${yesterday}':
-            obj[param_key] = get_yesterday("utc")
+            obj[param_key] = get_yesterday("utc", init_day)
         if param_value == '${today}':
-            obj[param_key] = get_today("utc")
+            obj[param_key] = get_today("utc", init_day)
     return obj
 
 
-def json2dict_utc(json_str):
-    json_dict = json.loads(json_str, object_hook=replace_query_utc)
+def json2dict_utc(json_str, init_day):
+    json_dict = json.loads(json_str, object_hook=replace_query_utc(init_day))
     return json_dict
 
 
-def replace_query(obj):
+def replace_query(obj, init_day):
     for param_key, param_value in obj.items():
         if param_value == '${yesterday}':
-            obj[param_key] = {"$date": int(get_yesterday().strftime("%s")) * 1000}
+            obj[param_key] = {"$date": int(get_yesterday(None, init_day).strftime("%s")) * 1000}
         if param_value == '${today}':
-            obj[param_key] = {"$date": int(get_today().strftime("%s")) * 1000}
+            obj[param_key] = {"$date": int(get_today(None, init_day).strftime("%s")) * 1000}
     return obj
 
 
-def json2dict(json_str):
-    json_dict = json.loads(json_str, object_hook=replace_query)
+def json2dict(json_str, init_day):
+    json_dict = json.loads(json_str, object_hook=replace_query(init_day))
     return json_dict
 
 
@@ -84,6 +85,7 @@ def get_option_parser():
     parser.add_option("-t", "--to", dest="hive_db", action="store", help="hive database.table")
     parser.add_option("-p", "--partition", dest="partition", action="store",
                       help="hive partition key=value")
+    parser.add_option("-i", "--init", dest="init_day", action="store", type="string", help="init day yyyy-MM-dd")
     return parser
 
 
@@ -138,7 +140,7 @@ def build_json_file(options, args):
     partition_key = None
     partition_value = None
     if partition is not None:
-        connection = Connection.get_hive_connection(config_util,hive_db)
+        connection = Connection.get_hive_connection(config_util, hive_db)
         cursor = connection.cursor()
         cursor.execute("use " + hive_db)
         partition_array = partition.split("=")
@@ -166,7 +168,7 @@ def build_json_file(options, args):
     query = None
     if parameter_dict and parameter_dict.has_key("query"):
         query = parameter_dict["query"]
-        query = json2dict(query)
+        query = json2dict(query, options.init_day)
 
     if query:
         parameter_dict["query"] = query
@@ -222,7 +224,7 @@ def run_datax(json_file):
 def run_check(options):
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
     (mongo_db, collection) = parse_mongo(options.mongo_db)
-    mongo_connection = Connection.get_mongo_connection(config_util,mongo_db)
+    mongo_connection = Connection.get_mongo_connection(config_util, mongo_db)
     connection_db = mongo_connection[mongo_db]
     mongo_collection = connection_db[collection]
     # 需要获取 yaml 文件中的 query 条件
@@ -232,7 +234,7 @@ def run_check(options):
     query = None
     if parameter_dict and parameter_dict.has_key("query"):
         query = parameter_dict["query"]
-        query = json2dict_utc(query)
+        query = json2dict_utc(query, options.init_day)
     mongo_count = -1
     if query:
         print "query:", query
@@ -240,7 +242,7 @@ def run_check(options):
     else:
         mongo_count = mongo_collection.find().count()
     mongo_connection.close()
-    hive_connection = Connection.get_hive_connection(config_util,hive_db)
+    hive_connection = Connection.get_hive_connection(config_util, hive_db)
     count_hive = "select count(*) as hcount from " + options.hive_db
     partition = options.partition
     if partition is not None and len(partition) > 0:
