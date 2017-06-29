@@ -60,10 +60,10 @@ def replace_query_utc(d, init_day):
                 d[k] = get_yesterday("utc", init_day)
             if v == "${today}":
                 d[k] = get_today("utc", init_day)
-            replace_query(v, init_day)
+            replace_query_utc(v, init_day)
     if isinstance(d, list):
         for v in d:
-            replace_query(v, init_day)
+            replace_query_utc(v, init_day)
     return d
 
 
