@@ -45,33 +45,58 @@ def get_interval_day(interval, tz=None, init_day=None):
     return today - datetime.timedelta(days=interval)
 
 
+# def replace_query_utc(obj, init_day):
+#     for param_key, param_value in obj.items():
+#         if param_value == '${yesterday}':
+#             obj[param_key] = get_yesterday("utc", init_day)
+#         if param_value == '${today}':
+#             obj[param_key] = get_today("utc", init_day)
+#     return obj
+
+def replace_query_utc(d, init_day):
+    if isinstance(d, dict):
+        for k, v in d.items():
+            if v == "${yesterday}":
+                d[k] = get_yesterday("utc", init_day)
+            if v == "${today}":
+                d[k] = get_today("utc", init_day)
+            replace_query(v, init_day)
+    if isinstance(d, list):
+        for v in d:
+            replace_query(v, init_day)
+    return d
+
+
 def json2dict_utc(json_str, init_day):
-    json_dict = json.loads(json_str)
-    for param_key, param_value in json_dict.items():
-        if param_value == '${yesterday}':
-            json_dict[param_key] = get_yesterday("utc", init_day)
-        if param_value == '${today}':
-            json_dict[param_key] = get_today("utc", init_day)
-    return json_dict
+    json_dict = json.loads(json_str, object_hook=None)
+    return replace_query_utc(json_dict, init_day)
 
 
-def replace_query(obj, init_day):
-    for param_key, param_value in obj.items():
-        if param_value == '${yesterday}':
-            obj[param_key] = {"$date": int(get_yesterday(None, init_day).strftime("%s")) * 1000}
-        if param_value == '${today}':
-            obj[param_key] = {"$date": int(get_today(None, init_day).strftime("%s")) * 1000}
-    return obj
+# def replace_query(obj, init_day):
+#     for param_key, param_value in obj.items():
+#         if param_value == '${yesterday}':
+#             obj[param_key] = {"$date": int(get_yesterday(None, init_day).strftime("%s")) * 1000}
+#         if param_value == '${today}':
+#             obj[param_key] = {"$date": int(get_today(None, init_day).strftime("%s")) * 1000}
+#     return obj
+
+def replace_query(d, init_day):
+    if isinstance(d, dict):
+        for k, v in d.items():
+            if v == "${yesterday}":
+                d[k] = {"$date": int(get_yesterday(None, init_day).strftime("%s")) * 1000}
+            if v == "${today}":
+                d[k] = {"$date": int(get_today(None, init_day).strftime("%s")) * 1000}
+            replace_query(v, init_day)
+    if isinstance(d, list):
+        for v in d:
+            replace_query(v, init_day)
+    return d
 
 
 def json2dict(json_str, init_day):
-    json_dict = json.loads(json_str)
-    for param_key, param_value in json_dict.items():
-        if param_value == '${yesterday}':
-            json_dict[param_key] = {"$date": int(get_yesterday(None, init_day).strftime("%s")) * 1000}
-        if param_value == '${today}':
-            json_dict[param_key] = {"$date": int(get_today(None, init_day).strftime("%s")) * 1000}
-    return json_dict
+    json_dict = json.loads(json_str, object_hook=None)
+    return replace_query(json_dict, init_day)
 
 
 def get_datetime_from_timestamp(timestamp):
