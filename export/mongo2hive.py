@@ -184,6 +184,8 @@ def build_json_file(options, args):
 
     if partition is not None:
         hive_path = hive_path + "/" + partition
+        remove_dir(hive_path)
+        create_dir(hive_path)
 
     remove_dir(default_fs + hive_path)
     create_dir(default_fs + hive_path)
