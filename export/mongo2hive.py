@@ -55,7 +55,7 @@ def replace_query_utc(obj, init_day):
 
 
 def json2dict_utc(json_str, init_day):
-    json_dict = json.loads(json_str, object_hook=replace_query_utc(init_day))
+    json_dict = json.loads(json_str, object_hook=replace_query_utc(init_day=init_day))
     return json_dict
 
 
@@ -69,7 +69,7 @@ def replace_query(obj, init_day):
 
 
 def json2dict(json_str, init_day):
-    json_dict = json.loads(json_str, object_hook=replace_query(init_day))
+    json_dict = json.loads(json_str, object_hook=replace_query(init_day=init_day))
     return json_dict
 
 
