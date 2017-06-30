@@ -151,6 +151,8 @@ class YamlParser(object):
             command_list.append("--to")
             command_list.append(command_value["hive_db"])
             command_list.append("--init")
+            if init_day is None:
+                init_day = DateUtil.get_now_fmt()
             command_list.append(init_day)
             vars = {}
             if command_value.has_key("vars") and command_value["vars"]:
@@ -225,10 +227,10 @@ if __name__ == '__main__':
     # 需要跑全部的 yaml 文件解析测试
     basedir = "/Users/yxl/yunniao/source/beeper_data_warehouse/job/script"
     yaml_files = []
-    for subdir in os.listdir(basedir):
-        for file in os.listdir(basedir + "/" + subdir):
-            yaml_files.append(basedir + "/" + subdir + "/" + file)
-    yaml_files = [basedir + '/odps/odps_heartbeat.yml']
+    # for subdir in os.listdir(basedir):
+    #     for file in os.listdir(basedir + "/" + subdir):
+    #         yaml_files.append(basedir + "/" + subdir + "/" + file)
+    yaml_files = [basedir + '/ods/ods_to_driver_exceptions.yml']
     init_day = '2016-01-03'
     for yaml_file in yaml_files:
         yaml_file_handler = open(yaml_file, 'r')
