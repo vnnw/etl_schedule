@@ -110,7 +110,7 @@ class Scheduler(object):
                     break
                 if len(should_require_jobs) == require_jobs_count:
                     break
-                if require_time > 5:  # 强制的判断方式有点问题,判断5次
+                if require_time > 10:  # 强制的判断方式有点问题,判断10次
                     break
                 self.logger.info("第" + str(require_time) + " 次运行")
                 self.logger.info("可以运行的job数量:" + str(len(should_require_jobs)) + " 需要运行的job数量:" + str(require_jobs_count))
