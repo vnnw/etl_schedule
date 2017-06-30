@@ -184,9 +184,8 @@ def build_json_file(options, args):
 
     if partition is not None:
         hive_path = hive_path + "/" + partition
-        remove_dir(hive_path)
-        create_dir(hive_path)
 
+    # 需要删除目录,否则执行多次都会创建新的目录
     remove_dir(default_fs + hive_path)
     create_dir(default_fs + hive_path)
 

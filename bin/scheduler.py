@@ -59,9 +59,9 @@ class Scheduler(object):
                         if int(start_day) == week_day:
                             record = self.dboption.update_trigger_job_pending(current, job_name)
                             if record == 1:
-                                self.logger.info("更新时间出发Job:" + job_name + " 状态为Pending")
+                                self.logger.info("更新时间触发Job:" + job_name + " 状态为Pending")
                             else:
-                                self.logger.error("更新时间出发Job :" + job_name + " 状态为Pending失败")
+                                self.logger.error("更新时间触发Job :" + job_name + " 状态为Pending失败")
                     else:
                         self.logger.info("时间触发 Job:" + job_name + " 没有对应时间触发执行方式")
 
@@ -88,12 +88,17 @@ class Scheduler(object):
                 return
         else:
             count_running_jobs = 0
-            self.logger.info(str(current_time) + " 当前没有RUNNING 状态的Job")
+
+        self.logger.info(str(current_time) + " 当前RUNNING状态的Job 数量:" + str(count_running_jobs))
 
         pending_jobs = self.dboption.get_pending_jobs()
         if pending_jobs is None or len(pending_jobs) == 0:
-            self.logger.info(str(current_time) + " 当前没有Pending 状态的Job")
+            count_pending_jobs = 0
+            self.logger.info("当前Pending状态的 Job 数量:" + str(count_pending_jobs))
             return
+        else:
+            count_pending_jobs = len(pending_jobs)
+            self.logger.info("当前Pending状态的 Job 数量:" + str(count_pending_jobs))
 
         require_jobs_count = max_running_jobs - count_running_jobs
         if require_jobs_count > 0:
@@ -120,6 +125,10 @@ class Scheduler(object):
                         if len(should_require_jobs) == require_jobs_count:
                             should_continue = False
                             break
+                if pending_jobs is None or len(pending_jobs) < require_jobs_count:
+                    self.logger.info("当前Pending状态的 Job 数量 小于 需要运行的任务数,无需循环多次")
+                    should_continue = False
+
                 require_time += 1
             self.logger.info("需要运行的Job:" + str(should_require_jobs))
             self.run_job_command(should_require_jobs)
