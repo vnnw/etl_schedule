@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding:utf-8 -*-
 
 import os
@@ -27,7 +26,7 @@ class ETLMonitor(object):
         msg = []
         connection = self.dbUtil.get_connection()
         cursor = connection.cursor(MySQLdb.cursors.DictCursor)
-        total_sql = "select count(*) as job_count from t_etl_job where date_format(pending_time,'%Y-%m-%d') = %s"
+        total_sql = 'select count(*) as job_count from t_etl_job where pending_time >= %s '
         cursor.execute(total_sql, (today,))
         row = cursor.fetchone()
         msg.append("总的任务数:" + str(row['job_count']))
