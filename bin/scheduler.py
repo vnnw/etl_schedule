@@ -30,10 +30,10 @@ class Scheduler(object):
         hour = DateUtil.get_time_hour(current)
         minute = DateUtil.get_time_minute(current)
         week_day = DateUtil.get_week_day(current)
-        self.logger.info("获取小时:" + str(hour) + " 分钟:" + str(minute) + " 运行的 Job")
+        self.logger.info("获取start_hour:" + str(hour) + " start_minute:" + str(minute) + " 运行的 Job")
         time_jobs = self.dboption.get_time_trigger_job(hour, minute)
         if time_jobs is None or len(time_jobs) == 0:
-            self.logger.info(dstring + " 没有需要运行的时间出发Job")
+            self.logger.info(dstring + " 没有需要运行的时间触发Job")
             return
         else:
             try:
@@ -41,31 +41,26 @@ class Scheduler(object):
                     job_name = job["job_name"]
                     trigger_type = job["trigger_type"]
                     record = 0
+                    should_run = False
                     if trigger_type == "day":  # 每天运行
-                        # 更新 job 状态为 Pending
-                        record = self.dboption.update_trigger_job_pending(current, job_name)
-                        if record == 1:
-                            self.logger.info("更新时间出发Job:" + job_name + " 状态为Pending")
-                        else:
-                            self.logger.error("更新时间出发Job :" + job_name + " 状态为Pending失败")
+                        should_run = True
                     elif trigger_type == "month":  # 每月运行
                         start_day = job["start_day"]
                         if int(start_day) == day:
-                            record = self.dboption.update_trigger_job_pending(current, job_name)
-                            if record == 1:
-                                self.logger.info("更新时间出发Job:" + job_name + " 状态为Pending")
-                            else:
-                                self.logger.error("更新时间出发Job :" + job_name + " 状态为Pending失败")
+                            should_run = True
                     elif trigger_type == "week":  # 每周运行
                         start_day = job["start_day"]
                         if int(start_day) == week_day:
-                            record = self.dboption.update_trigger_job_pending(current, job_name)
-                            if record == 1:
-                                self.logger.info("更新时间触发Job:" + job_name + " 状态为Pending")
-                            else:
-                                self.logger.error("更新时间触发Job :" + job_name + " 状态为Pending失败")
+                            should_run = True
+
+                    if should_run:
+                        record = self.dboption.update_trigger_job_pending(current, job_name)
+                        if record == 1:
+                            self.logger.info("更新时间触发Job:" + job_name + " 状态为Pending")
+                        else:
+                            self.logger.error("更新时间触发Job :" + job_name + " 状态为Pending失败")
                     else:
-                        self.logger.info("时间触发 Job:" + job_name + " 没有对应时间触发执行方式")
+                        self.logger.info("时间触发 Job:" + job_name + " 没有对应时间触发执行方式 trigger_type:" + str(trigger_type))
 
             except Exception, e:
                 self.logger.error(e)
@@ -73,13 +68,14 @@ class Scheduler(object):
 
     def sched_trigger_run(self, current_time = None):
         self.logger.info("... interval run sched_trigger_run ....")
-        current_time = DateUtil.get_now()
-        self.get_timetrigger_job(current_time)
-        self.logger.info("调度运行时间:" + str(current_time))
+        start_time = DateUtil.get_now()
+        self.get_timetrigger_job(start_time)
+        end_time = DateUtil.get_now()
+        self.logger.info("时间触发调度运行时长:" + str(end_time - start_time))
 
     def sched_job_run(self):
         self.logger.info("... interval run sched_job_run ....")
-        current_time = DateUtil.get_now()
+        start_time = DateUtil.get_now()
         # 当前运行的任务数
         max_running_jobs = int(self.config.get("job.run.max"))
         running_jobs = self.dboption.get_running_jobs()
@@ -91,7 +87,7 @@ class Scheduler(object):
         else:
             count_running_jobs = 0
 
-        self.logger.info(str(current_time) + " 当前RUNNING状态的Job 数量:" + str(count_running_jobs))
+        self.logger.info(str(start_time) + " 当前RUNNING状态的Job 数量:" + str(count_running_jobs))
 
         pending_jobs = self.dboption.get_pending_jobs()
         if pending_jobs is None or len(pending_jobs) == 0:
@@ -128,14 +124,23 @@ class Scheduler(object):
                             should_continue = False
                             break
                 if pending_jobs is None or len(pending_jobs) < require_jobs_count:
-                    self.logger.info("当前Pending状态的 Job 数量 小于 需要运行的任务数,无需循环多次")
+                    self.logger.info("当前Pending状态的 Job 数量 " + str(self.get_list_length(pending_jobs)) +
+                                     " 小于 需要运行的任务数 " + str(require_jobs_count) +",无需循环多次")
                     should_continue = False
 
                 require_time += 1
             self.logger.info("需要运行的Job:" + str(should_require_jobs))
             self.run_job_command(should_require_jobs)
+            end_time = DateUtil.get_now()
+            self.logger.info("依赖触发调度执行时长:" + str(end_time - start_time))
         else:
             self.logger.info("当前运行的Job 数量:" + str(count_running_jobs) + "大于系统的最大任务数")
+
+    def get_list_length(self, objs):
+        if objs is None:
+            return 0
+        else:
+            return len(objs)
 
     '''
      判断job的所有依赖是否运行完成 True/False
