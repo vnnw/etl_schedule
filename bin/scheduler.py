@@ -155,8 +155,8 @@ class Scheduler(object):
             dep_job_name = dep_job["job_name"]
             dep_job_status = dep_job["job_status"]
             dep_job_last_run_date = dep_job["last_run_date"]  # 最后一次运行日期
-            self.logger.info("job_name:" + job_name + " 依赖的Job:" + dep_job_name + " 运行状态:" + str(dep_job_status)
-                             + " 最后运行时间:" + str(dep_job_last_run_date))
+            #self.logger.info("job_name:" + job_name + " 依赖的Job:" + dep_job_name + " 运行状态:" + str(dep_job_status)
+            #                 + " 最后运行时间:" + str(dep_job_last_run_date))
             if dep_job_last_run_date and dep_job_last_run_date != today:
                 should_run = False
                 self.logger.info("因Job:" + job_name + " 依赖Job:" + dep_job_name +

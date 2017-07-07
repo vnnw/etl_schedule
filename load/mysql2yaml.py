@@ -183,6 +183,12 @@ def run(db, path, stable):
     gen_schedule(sql_dir, "\n".join(schedule_list))
 
 
+def replace_column(name):
+    if name in ["cuid",]:
+        return "customer_id"
+    return name
+
+
 def gen_fact(db, table, columns, table_comment, sql_dir):
     include_column = []
     create_column = []
@@ -191,7 +197,7 @@ def gen_fact(db, table, columns, table_comment, sql_dir):
     for column in columns:
         (name, typestring, comment) = column
         ctype = typestring.split("(")[0]
-        include_column.append(("    " * 2) + "`" + name + "`")
+        include_column.append(("    " * 2) + "`" + replace_column(name) + "`")
         create_column.append(
                 "    `" + str(name) + "` " + str(HiveType.change_type(ctype)).strip() + " comment \"" + str(
                         comment).strip() + "\"")
@@ -222,7 +228,7 @@ def gen_dim(db, table, columns, table_comment, sql_dir):
     for column in columns:
         (name, typestring, comment) = column
         ctype = typestring.split("(")[0]
-        include_column.append(("    " * 2) + "`" + name + "`")
+        include_column.append(("    " * 2) + "`" + replace_column(name) + "`")
         create_column.append(
                 "    `" + str(name) + "` " + str(HiveType.change_type(ctype)).strip() + " comment \"" + str(
                         comment).strip() + "\"")
