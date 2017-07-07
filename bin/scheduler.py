@@ -6,6 +6,7 @@ from dateutil import DateUtil
 from logutil import Logger
 from dboption import DBOption
 from configutil import ConfigUtil
+import time
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
@@ -29,6 +30,7 @@ class Scheduler(object):
         hour = DateUtil.get_time_hour(current)
         minute = DateUtil.get_time_minute(current)
         week_day = DateUtil.get_week_day(current)
+        self.logger.info("获取小时:" + str(hour) + " 分钟:" + str(minute) + " 运行的 Job")
         time_jobs = self.dboption.get_time_trigger_job(hour, minute)
         if time_jobs is None or len(time_jobs) == 0:
             self.logger.info(dstring + " 没有需要运行的时间出发Job")
@@ -69,7 +71,7 @@ class Scheduler(object):
                 self.logger.error(e)
                 self.logger.error("处理时间触发Job异常")
 
-    def sched_trigger_run(self):
+    def sched_trigger_run(self, current_time = None):
         self.logger.info("... interval run sched_trigger_run ....")
         current_time = DateUtil.get_now()
         self.get_timetrigger_job(current_time)
@@ -188,6 +190,9 @@ class Scheduler(object):
     '''
 
     def run(self):
+        current_time = DateUtil.get_now()
+        second = current_time.second
+        time.sleep(60 - second)
         trigger_job = self.scheduler.add_job(self.sched_trigger_run, 'interval', minutes=1)
         self.logger.info("添加处理时间触发任务:" + str(trigger_job))
         run_job = self.scheduler.add_job(self.sched_job_run, 'interval', seconds=30)
