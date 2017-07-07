@@ -161,8 +161,10 @@ def run(db, path, stable):
             sql_dir + "/script/fact_beeper",
             sql_dir + "/script/ods_mysql"])
 
-    for table in tables:
-        if stable and len(stable.strip()) > 0 and stable != table:
+    mtables = stable.strip.split(",")
+    for table in mtables:
+        if table not in tables:
+            print("table:" + table + " 不在 db:" + db + "中")
             continue
 
         columns = get_table_columns(connection, table)
