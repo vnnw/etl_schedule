@@ -125,7 +125,7 @@ class Scheduler(object):
                             break
                 if pending_jobs is None or len(pending_jobs) < require_jobs_count:
                     self.logger.info("当前Pending状态的 Job 数量 " + str(self.get_list_length(pending_jobs)) +
-                                     " 小于 需要运行的任务数 " + str(require_jobs_count) +",无需循环多次")
+                                     " 小于 需要运行的任务数 " + str(require_jobs_count) +",无需循环")
                     should_continue = False
 
                 require_time += 1

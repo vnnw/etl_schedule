@@ -134,7 +134,7 @@ class DBOption(object):
             return None
 
     # 获取需要运行的任务数 状态为 Pending
-    def get_pending_jobs_by_require_time(self, require_time, job_limit):
+    def get_pending_jobs_by_require_time(self, require_time, job_limit): # 方便增加优先级排序
         sql = "select job_name,job_script from t_etl_job where job_status = %s order by pending_time desc limit %s , %s"
         try:
             connection = self.dbUtil.get_connection()
