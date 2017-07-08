@@ -187,7 +187,17 @@ def run(db, path, stable):
 
 def replace_column(name):
     if name in ["cuid",]:
-        return "customer_id"
+        return name + " -> customer_id"
+    if name in ["cts", "create_time"]:
+        return name + " -> created_at"
+    if name in ["pts", "update_time"]:
+        return name + " -> updated_at"
+    if name in ["from_"]:
+        return name + " -> from"
+    if name in ["comment_"]:
+        return name + " -> operate"
+    if name in ["addr",]:
+        return name + " -> address"
     return name
 
 
