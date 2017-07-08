@@ -442,6 +442,7 @@ class DBOption(object):
     def remove_etl_job(self, job_name):
         try:
             remove_sql = "delete from t_etl_job where job_name = %s"
+            print remove_sql % "'" + job_name + "'" # 需要输出到控制台
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(remove_sql, (job_name,))
@@ -455,6 +456,7 @@ class DBOption(object):
     def remove_etl_dependency_job(self, job_name):
         try:
             remove_sql = "delete from t_etl_job_dependency where job_name = %s"
+            print remove_sql % "'" + job_name + "'" # 需要输出到控制台
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(remove_sql, (job_name,))
@@ -468,6 +470,7 @@ class DBOption(object):
     def remove_etl_stream_job(self, job_name):
         try:
             remove_sql = "delete from t_etl_job_stream where stream_job = %s"
+            print remove_sql % "'" + job_name + "'" # 需要输出到控制台
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(remove_sql, (job_name,))
@@ -481,6 +484,7 @@ class DBOption(object):
     def remove_etl_job_trigger(self, job_name):
         try:
             remove_sql = "delete from t_etl_job_trigger where job_name = %s"
+            print remove_sql % "'" + job_name + "'" # 需要输出到控制台
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(remove_sql, (job_name,))

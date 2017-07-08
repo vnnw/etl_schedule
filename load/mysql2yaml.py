@@ -196,8 +196,12 @@ def replace_column(name):
         return name + " -> from"
     if name in ["comment_"]:
         return name + " -> operate"
-    if name in ["addr",]:
+    if name in ["addr"]:
         return name + " -> address"
+    if name in ["lot"]:
+        return name + " -> longitude"
+    if name in ["lat"]:
+        return name + " -> latitude"
     return name
 
 
