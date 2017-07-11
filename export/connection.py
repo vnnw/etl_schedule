@@ -60,6 +60,6 @@ class Connection:
             "url": url,
             "username": db_config["username"],
             "password": db_config["password"],
-            "table": "t_ods_monitor"
+            "table": "t_datax_monitor"
         }
         return static_dict
