@@ -51,3 +51,15 @@ class Connection:
         connection = MySQLdb.connect(host, username, password, mysql_db, port, use_unicode=True, charset='utf8')
         return connection
 
+    @staticmethod
+    def get_mysql_monitor_dict(config_util):
+        db = config_util.get("mysql.db")
+        db_config = Connection.get_mysql_config(config_util,db)
+        url = "jdbc:mysql://" + db_config["host"] + ":" + str(db_config["port"]) + "/" + db
+        static_dict = {
+            "url": url,
+            "username": db_config["username"],
+            "password": db_config["password"],
+            "table": "t_ods_monitor"
+        }
+        return static_dict

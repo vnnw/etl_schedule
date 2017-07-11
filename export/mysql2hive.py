@@ -289,6 +289,8 @@ def build_json_file(options, args):
 
     json_data["job"]["content"][0]["writer"]["parameter"] = writer_parameter_dict
 
+    json_data["job"]["setting"]["statics"] = Connection.get_mysql_monitor_dict(config_util)
+
     datax_json_base_path = config_util.get("datax.json.path")
     if not os.path.exists(datax_json_base_path):
         os.makedirs(datax_json_base_path)
