@@ -259,8 +259,8 @@ def build_json_file(options, args):
 
     readerParameterDict = {
         "connection": [{
-            "mysql_database": [mysql_db],
-            "mysql_table": [mysql_table],
+            "mysql_database": mysql_db,
+            "mysql_table": mysql_table,
             "querySql": [query_sql],
             "jdbcUrl": [
                 "jdbc:mysql://" + mysql_config_dict["host"] + ":" + str(mysql_config_dict["port"]) + "/" + mysql_db]
