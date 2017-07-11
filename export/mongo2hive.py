@@ -228,7 +228,7 @@ def build_json_file(options, args):
     }
     yaml_dict["job"]["content"][0]["writer"] = writer_dict
 
-    yaml_dict["job"]["setting"]["statics"] = Connection.get_mysql_connection(config_util)
+    yaml_dict["job"]["setting"]["statics"] = Connection.get_mysql_monitor_dict(config_util)
 
     json_str = dict2json(yaml_dict)
     (file_path, temp_filename) = os.path.split(options.yaml_file)
