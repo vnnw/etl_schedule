@@ -35,9 +35,9 @@ if __name__ == '__main__':
             try:
                 job_start_time = datetime.datetime.strptime(job["last_start_time"], "%Y-%m-%d %H:%M:%S")
                 dep_job_start_time = datetime.datetime.strptime(dep_job_detail["last_start_time"], "%Y-%m-%d %H:%M:%S")
-                duration = (job_start_time - dep_job_start_time).seconds
+                duration = (job_start_time - dep_job_start_time).total_seconds()
                 if duration <= 0:
-                    print job_name, dep_job_name, dep_job_start_time, job_start_time, str(duration)
+                    print job_name, job_start_time, dep_job_name, dep_job_start_time, str(duration)
             except Exception as e:
                 print "job->", job
                 print "dep_job->", dep_job_detail

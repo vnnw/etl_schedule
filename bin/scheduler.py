@@ -160,7 +160,7 @@ class Scheduler(object):
             if (dep_job_last_run_date and dep_job_last_run_date != today) or dep_job_last_run_date is None:
                 should_run = False
                 self.logger.info("因Job:" + job_name + " 依赖Job:" + dep_job_name +
-                                 "最后运行时间" + str(dep_job_last_run_date) + "不是今天:" + today + ",无法运行")
+                                 "最后运行时间:" + str(dep_job_last_run_date) + "不是:" + today + ",无法运行")
                 break
             if dep_job_status != "Done":
                 should_run = False
