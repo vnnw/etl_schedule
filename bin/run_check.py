@@ -35,8 +35,10 @@ if __name__ == '__main__':
     cursor.execute(job_sql + " and last_run_date=%s", (today,))
     jobs = cursor.fetchall()
 
+    count = 0
     for job in jobs:
         job_name = job["job_name"]
+        job_start_time = datetime.datetime.strptime(job["last_start_time"], "%Y-%m-%d %H:%M:%S")
         dep_jobs = set()
         get_dependency(cursor, job_name, dep_jobs)
         for dep_job in dep_jobs:
@@ -44,12 +46,13 @@ if __name__ == '__main__':
             dep_job_detail = cursor.fetchone()
             #print dep_job_detail
             try:
-                job_start_time = datetime.datetime.strptime(job["last_start_time"], "%Y-%m-%d %H:%M:%S")
-                dep_job_start_time = datetime.datetime.strptime(dep_job_detail["last_start_time"], "%Y-%m-%d %H:%M:%S")
-                duration = (job_start_time - dep_job_start_time).total_seconds()
+                dep_job_end_time = datetime.datetime.strptime(dep_job_detail["last_end_time"], "%Y-%m-%d %H:%M:%S")
+                duration = (job_start_time - dep_job_end_time).total_seconds()
                 if duration <= 0:
-                    print job_name, job_start_time, dep_job, dep_job_start_time, str(duration)
+                    print job_name, job_start_time, dep_job, dep_job_end_time, str(duration)
             except Exception as e:
                 print traceback.format_exc()
                 print "job->", job
                 print "dep_job->", dep_job_detail
+        count += 1
+    print "check:" + str(count) + " jobs"
