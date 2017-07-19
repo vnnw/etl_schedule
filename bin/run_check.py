@@ -22,7 +22,6 @@ def get_dependency(cursor, job_name, dep_jobs):
         get_dependency(cursor, dep_job["dependency_job"], dep_jobs)
     return dep_jobs
 
-
 if __name__ == '__main__':
 
     dbUtil = DBUtil()
