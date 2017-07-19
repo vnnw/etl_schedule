@@ -40,6 +40,7 @@ class ETLMonitor(object):
         count = 0
         failed = 0
         error = 0
+        failed_job = []
         for job in jobs:
             job_name = job["job_name"]
             job_start_time = datetime.datetime.strptime(job["last_start_time"], "%Y-%m-%d %H:%M:%S")
@@ -55,6 +56,7 @@ class ETLMonitor(object):
                     if duration <= 0:
                         failed += 1
                         print job_name, job_start_time, dep_job, dep_job_end_time, str(duration)
+                        failed_job.append(job_name)
                 except Exception as e:
                     print traceback.format_exc()
                     print "job->", job
@@ -62,7 +64,9 @@ class ETLMonitor(object):
                     error += 1
             count += 1
         print "check:" + str(count) + " jobs failed:" + str(failed) + " exception:" + str(error)
-        msg.append("调度异常数:" + str(failed))
+        if len(failed_job) > 0 or failed > 0:
+            msg.append("调度异常数:" + str(failed))
+            msg.append("调度异常任务:" + str(",".join(failed_job)))
 
     def run_count(self, cursor, today, msg):
         total_sql = 'select count(*) as job_count from t_etl_job where pending_time >= %s '
