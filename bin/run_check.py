@@ -36,6 +36,8 @@ if __name__ == '__main__':
     jobs = cursor.fetchall()
 
     count = 0
+    failed = 0
+    error = 0
     for job in jobs:
         job_name = job["job_name"]
         job_start_time = datetime.datetime.strptime(job["last_start_time"], "%Y-%m-%d %H:%M:%S")
@@ -49,10 +51,12 @@ if __name__ == '__main__':
                 dep_job_end_time = datetime.datetime.strptime(dep_job_detail["last_end_time"], "%Y-%m-%d %H:%M:%S")
                 duration = (job_start_time - dep_job_end_time).total_seconds()
                 if duration <= 0:
+                    failed += 1
                     print job_name, job_start_time, dep_job, dep_job_end_time, str(duration)
             except Exception as e:
                 print traceback.format_exc()
                 print "job->", job
                 print "dep_job->", dep_job_detail
+                error += 1
         count += 1
-    print "check:" + str(count) + " jobs"
+    print "check:" + str(count) + " jobs failed:" + str(failed) + " exception:" + str(error)
