@@ -183,7 +183,7 @@ def send_email(subject, content, excel_path, receivers_array):
     contype = 'application/octet-stream'
     maintype, subtype = contype.split('/', 1)
     server = smtplib.SMTP("smtp.263.net")
-    server.login("noreply@yunniao.me", "1111aaaa")
+    server.login("xxx", "xxx")
     main_msg = email.MIMEMultipart.MIMEMultipart()
     text_msg = email.MIMEText.MIMEText(content, 'plain', "utf-8")
     # email text
