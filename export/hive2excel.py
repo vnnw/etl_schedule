@@ -200,11 +200,11 @@ def send_email(subject, content, excel_path, receivers_array):
     main_msg.attach(file_msg)
     main_msg["Accept-Language"] = "zh-CN"
     main_msg["Accept-Charset"] = "utf-8"
-    main_msg['From'] = "noreply@yunniao.me"
+    main_msg['From'] = "xxxx"
     main_msg['To'] = ",".join(receivers_array)
     main_msg['Subject'] = subject
     full_text = main_msg.as_string()
-    server.sendmail("noreply@yunniao.me", receivers_array, full_text)
+    server.sendmail("xxxx", receivers_array, full_text)
     server.quit()
 
 
