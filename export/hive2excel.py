@@ -183,7 +183,7 @@ def send_email(subject, content, excel_path, receivers_array):
     contype = 'application/octet-stream'
     maintype, subtype = contype.split('/', 1)
     server = smtplib.SMTP("smtp.263.net")
-    server.login("xxx", "xxx")
+    server.login(configUtil.get("email.username"), configUtil.get("email.password"))
     main_msg = email.MIMEMultipart.MIMEMultipart()
     text_msg = email.MIMEText.MIMEText(content, 'plain', "utf-8")
     # email text
@@ -200,11 +200,11 @@ def send_email(subject, content, excel_path, receivers_array):
     main_msg.attach(file_msg)
     main_msg["Accept-Language"] = "zh-CN"
     main_msg["Accept-Charset"] = "utf-8"
-    main_msg['From'] = "xxxx"
+    main_msg['From'] = configUtil.get("email.username")
     main_msg['To'] = ",".join(receivers_array)
     main_msg['Subject'] = subject
     full_text = main_msg.as_string()
-    server.sendmail("xxxx", receivers_array, full_text)
+    server.sendmail(configUtil.get("email.username"), receivers_array, full_text)
     server.quit()
 
 
