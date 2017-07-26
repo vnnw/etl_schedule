@@ -150,6 +150,7 @@ class Scheduler(object):
         today = DateUtil.format_year_day(DateUtil.get_now())
         job_name = job["job_name"]
         dep_jobs = self.dboption.get_dependency_job_status(job_name)  # job_name,status
+        self.logger.info("job_name:" + str(job_name) + " 依赖的 job数量:" + str(self.get_list_length(dep_jobs)))
         should_run = True
         for dep_job in dep_jobs:
             dep_job_name = dep_job["job_name"]
