@@ -74,7 +74,8 @@ class DBOption(object):
     def get_job_info(self, job_name):
         try:
             connection = self.dbUtil.get_connection()
-            sql = "select job_name,job_status,job_trigger,job_script,main_man,retry_count from t_etl_job where job_name = %s"
+            sql = "select job_name,job_status,job_trigger,job_script,main_man,retry_count," \
+                  "pending_time from t_etl_job where job_name = %s"
             cursor = connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute(sql, (job_name,))
             row = cursor.fetchone()
@@ -169,12 +170,13 @@ class DBOption(object):
             return None
 
     # 保存 t_etl_job_queue 等待运行
-    def save_job_queue(self, job_name):
-        sql = "insert into t_etl_job_queue(job_name,create_time,run_number,job_status) values (%s,%s,%s,%s)"
+    def save_job_queue(self, job_name, pending_time):
+        sql = "insert into t_etl_job_queue(job_name,create_time,run_number," \
+              "job_status,pending_time) values (%s,%s,%s,%s,%s)"
         try:
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
-            cursor.execute(sql, (job_name, DateUtil.get_now(), 1, JOB_PENDING))
+            cursor.execute(sql, (job_name, DateUtil.get_now(), 1, JOB_PENDING, pending_time))
             cursor.close()
             connection.commit()
             connection.close()

@@ -179,9 +179,14 @@ class Scheduler(object):
             self.logger.info("需要保存到 t_etl_job_queue 等待运行的Job数量为 0")
         else:
             for job_name in should_run_jobs:
+                job_info = self.dboption.get_job_info(job_name)
+                if job_info is None:
+                    self.logger.error("无法获取 Job:" + job_name + " 信息")
+                    continue
+                pending_time = job_info["pending_time"]
                 queue_job = self.dboption.get_queue_job(job_name)
                 if queue_job is None:
-                    code = self.dboption.save_job_queue(job_name)
+                    code = self.dboption.save_job_queue(job_name, pending_time)
                     if code == 1:
                         self.logger.info("保存Job:" + job_name + " 到t_etl_job_queue 等待运行")
                     else:
