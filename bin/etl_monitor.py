@@ -5,6 +5,7 @@ import sys
 from configutil import ConfigUtil
 from dateutil import DateUtil
 from dbutil import DBUtil
+from smsutil import SMSUtil
 import json
 import MySQLdb
 import urllib2
@@ -21,6 +22,7 @@ class ETLMonitor(object):
         self.config = ConfigUtil()
         self.dbUtil = DBUtil()
         self.dboption = DBOption()
+        self.smsUtil = SMSUtil()
 
     def get_dependency(self, cursor, job_name, dep_jobs):
         dep_sql = "select job_name,dependency_job from t_etl_job_dependency where job_name = %s"
@@ -99,17 +101,8 @@ class ETLMonitor(object):
         if not phones or len(phones) == 0:
             print("没有配置短信发送phone")
             return
-        data = {
-            "mobile": ",".join(phones),
-            "template": "super_template",
-            "data": {
-                "content": today + " 运行日志信息:\n" + str(",\n".join(msg))
-            }
-        }
-        host = self.config.get("sms.host")
-        request = urllib2.Request(url="http://" + host + "/api/v1/sms/send/template", data=json.dumps(data))
-        request.add_header('Content-Type', 'application/json')
-        response = urllib2.urlopen(request)
+        content = today + " 运行日志信息:\n" + str(",\n".join(msg))
+        response = self.smsUtil.send(",".join(phones, content))
         print(response.read())
 
 
