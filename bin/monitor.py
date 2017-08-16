@@ -27,9 +27,8 @@ class Monitor(object):
     def monitor(self, job_name):
         etl_job = self.dboption.get_job_info(job_name)
         main_man = etl_job["main_man"]
-        main_phone = self.dboption.get_main_man_user(main_man)
         content = "etl_schedule job:" + job_name + " 运行失败,需要修复"
-        response = self.smsUtil.send(main_phone, content)
+        response = self.smsUtil.send(main_man["user_phone"], content)
         print("sms response:" + str(response))
 
 # test
