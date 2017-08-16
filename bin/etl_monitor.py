@@ -103,7 +103,7 @@ class ETLMonitor(object):
             return
         content = today + " 运行日志信息:\n" + str(",\n".join(msg))
         response = self.smsUtil.send(",".join(phones, content))
-        print(response.read())
+        print(response)
 
 
 if __name__ == '__main__':

@@ -6,48 +6,31 @@ import urllib2
 
 from configutil import ConfigUtil
 from dboption import DBOption
-
+from smsutil import SMSUtil
 
 class Monitor(object):
 
     def __init__(self):
         self.dboption = DBOption()
         self.config = ConfigUtil()
+        self.smsUtil = SMSUtil()
 
     def monitor_all(self, job_name):
         main_phones = self.dboption.get_main_man()
         phones = set()
         for main_man in main_phones:
             phones.add(main_man["user_phone"])
-        data = {
-            "mobile": ",".join(phones),
-            "template": "super_template",
-            "data": {
-                "content": "etl_schedule job:" + job_name + " 运行失败,需要修复"
-            }
-        }
-        host = self.config.get("sms.host")
-        request = urllib2.Request(url="http://" + host + "/api/v1/sms/send/template", data=json.dumps(data))
-        request.add_header('Content-Type', 'application/json')
-        response = urllib2.urlopen(request)
-        print(response.read())
+        content = "etl_schedule job:" + job_name + " 运行失败,需要修复"
+        response = self.smsUtil.send(",".join(phones), content)
+        print("sms response:" + str(response))
 
     def monitor(self, job_name):
         etl_job = self.dboption.get_job_info(job_name)
         main_man = etl_job["main_man"]
         main_phone = self.dboption.get_main_man_user(main_man)
-        data = {
-            "mobile": main_phone["user_phone"],
-            "template": "super_template",
-            "data": {
-                "content": "etl_schedule job:" + job_name + " 运行失败,需要修复"
-            }
-        }
-        host = self.config.get("sms.host")
-        request = urllib2.Request(url="http://" + host + "/api/v1/sms/send/template", data=json.dumps(data))
-        request.add_header('Content-Type', 'application/json')
-        response = urllib2.urlopen(request)
-        print(response.read())
+        content = "etl_schedule job:" + job_name + " 运行失败,需要修复"
+        response = self.smsUtil.send(main_phone, content)
+        print("sms response:" + str(response))
 
 # test
 if __name__ == '__main__':
