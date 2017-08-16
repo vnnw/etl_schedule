@@ -27,5 +27,5 @@ class SMSUtil(object):
         request = urllib2.Request(url="http://" + host + "/api/v1/sms/send/template", data=json.dumps(data))
         request.add_header('Content-Type', 'application/json')
         response = urllib2.urlopen(request)
-        print(response.read())
-        return response.read()
+        rep = response.read()
+        return rep
