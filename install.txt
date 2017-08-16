@@ -1,0 +1,33 @@
+wget https://bootstrap.pypa.io/ez_setup.py -O - | python
+easy_install pip
+
+
+pip install apscheduler==3.2.0
+pip install dbutils==1.1
+
+
+yum update mysql
+yum install mysql-devel
+
+https://pypi.python.org/pypi/MySQL-python
+python setup.py install
+||
+pip install mysql-python
+
+
+pip install pyaml==16.9.0
+
+
+pip install xlsxwriter==0.9.4
+
+pip install pyhs2==0.6.0
+
+pip install pymongo==3.4.0
+
+pip install pyodps==0.6.9
+
+pip install python-ldap==2.4.30
+
+
+# pyhs2
+yum install cyrus-sasl-devel cyrus-sasl-gssapi cyrus-sasl-md5 cyrus-sasl-plain
