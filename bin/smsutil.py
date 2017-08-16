@@ -23,7 +23,7 @@ class SMSUtil(object):
                 "content": content
             }
         }
-        host = self.configUtil.get("sms.host")
+        host = self.config.get("sms.host")
         request = urllib2.Request(url="http://" + host + "/api/v1/sms/send/template", data=json.dumps(data))
         request.add_header('Content-Type', 'application/json')
         response = urllib2.urlopen(request)
