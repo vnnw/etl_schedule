@@ -8,6 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import json
 import subprocess
+import time
 from odps import ODPS
 from bin.configutil import ConfigUtil
 from hivetype import HiveType
@@ -276,8 +277,13 @@ def run_datax(json_file):
     datax_command = config_util.get("datax.path") + " " + json_file
     print datax_command
     child_process = subprocess.Popen("python " + datax_command, shell=True)
-    (stdout, stderr) = child_process.communicate()
-    return child_process.returncode
+    while True:
+        code = child_process.poll()
+        if code is not None:
+            return code
+        else:
+            time.sleep(10)
+
 
 
 '''

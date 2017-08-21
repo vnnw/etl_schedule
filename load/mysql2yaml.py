@@ -161,7 +161,7 @@ def run(db, path, stable):
             sql_dir + "/script/fact_beeper",
             sql_dir + "/script/ods_mysql"])
 
-    mtables = stable.strip.split(",")
+    mtables = stable.strip().split(",")
     for table in mtables:
         if table not in tables:
             print("table:" + table + " 不在 db:" + db + "中")

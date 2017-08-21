@@ -102,7 +102,7 @@ class ETLMonitor(object):
             print("没有配置短信发送phone")
             return
         content = today + " 运行日志信息:\n" + str(",\n".join(msg))
-        response = self.smsUtil.send(",".join(phones, content))
+        response = self.smsUtil.send(",".join(phones), content)
         print(response)
 
 
