@@ -276,7 +276,7 @@ def build_json_file(options, args):
 def run_datax(json_file):
     datax_command = config_util.get("datax.path") + " " + json_file
     print datax_command
-    child_process = subprocess.Popen("python " + datax_command, shell=False)
+    child_process = subprocess.Popen("python " + datax_command, shell=True)
     code = child_process.wait()
     return code
 
