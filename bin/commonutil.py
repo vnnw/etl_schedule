@@ -16,4 +16,4 @@ class CommonUtil(object):
         if python_path is None or len(python_path) == 0:
             raise Exception("can't find python.home")
         python_bin = python_path + "/bin/python"
-        return python_bin
+        return [python_bin, "-u"]

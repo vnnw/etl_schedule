@@ -66,7 +66,7 @@ class Executor(object):
                 logfile_handler = open(logfile, 'w', bufsize)
                 python_bin = CommonUtil.python_bin(self.config)
                 run_path = project_path + "/bin/" + "runcommand.py"
-                child = subprocess.Popen([python_bin, run_path, "-job", job_name],
+                child = subprocess.Popen(python_bin + [run_path, "-job", job_name],
                                          stdout=logfile_handler.fileno(),
                                          stderr=subprocess.STDOUT,
                                          shell=False)
