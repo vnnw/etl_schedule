@@ -7,13 +7,11 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import json
-import subprocess
-import time
 from odps import ODPS
 from bin.configutil import ConfigUtil
 from hivetype import HiveType
 from connection import Connection
-
+from dataxutil import DataXUtil
 
 config_util = ConfigUtil()
 
@@ -118,14 +116,13 @@ def get_odps_table_columns(columns, exclude_columns, odps_db, odps_table):
     return column_list
 
 
-
 '''
 创建hive 表
 '''
 
 
 def create_hive_table(hive_db, hive_table, column_list, partition):
-    connection = Connection.get_hive_connection(config_util,hive_db)
+    connection = Connection.get_hive_connection(config_util, hive_db)
     cursor = connection.cursor()
     cursor.execute("use " + hive_db)
     cursor.execute("show tables")
@@ -273,14 +270,6 @@ def build_json_file(options, args):
     return datax_json_path
 
 
-def run_datax(json_file):
-    datax_command = config_util.get("datax.path") + " " + json_file
-    print datax_command
-    child_process = subprocess.Popen("python " + datax_command, shell=True)
-    code = child_process.wait()
-    return code
-
-
 '''
 检查导入的数据是否完整,总的记录条数差距 %10
 '''
@@ -302,7 +291,7 @@ def run_check(options):
             odps_count = int(record['mcount'])
 
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
-    hive_connection = Connection.get_hive_connection(config_util,hive_db)
+    hive_connection = Connection.get_hive_connection(config_util, hive_db)
     count_hive = "select count(*) as hcount from " + options.hive_db
     if partition_key is not None and len(partition_key) > 0:
         count_hive = count_hive + " where " + partition_key + "='" + partition_value + "'"
@@ -353,7 +342,7 @@ if __name__ == "__main__":
             print("require odps database.table")
             sys.exit(1)
         jsonFile = build_json_file(options, args)
-        code = run_datax(jsonFile)
+        code = DataXUtil.run_datax(config_util, jsonFile)
         if code != 0:
             print("datax load failed")
             sys.exit(1)

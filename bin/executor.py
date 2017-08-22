@@ -7,6 +7,7 @@ import subprocess
 from logutil import Logger
 from dateutil import DateUtil
 from configutil import ConfigUtil
+from commonutil import CommonUtil
 from dboption import DBOption
 from monitor import Monitor
 from apscheduler.schedulers.blocking import BlockingScheduler
@@ -63,10 +64,7 @@ class Executor(object):
                 logfile = today_log_dir + "/" + job_name + "_" + today + ".log." + str(run_number)
                 bufsize = 0
                 logfile_handler = open(logfile, 'w', bufsize)
-                python_path = self.config.get("python.home")
-                if python_path is None or len(python_path) == 0:
-                    raise Exception("can't find python.home")
-                python_bin = python_path + "/bin/python"
+                python_bin = CommonUtil.python_bin(self.config)
                 run_path = project_path + "/bin/" + "runcommand.py"
                 child = subprocess.Popen([python_bin, run_path, "-job", job_name],
                                          stdout=logfile_handler.fileno(),

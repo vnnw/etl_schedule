@@ -14,6 +14,7 @@ import traceback
 project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(project_path)
 from export.hiveutil import HiveUtil
+from commonutil import CommonUtil
 
 '''
 用来运行具体的脚本
@@ -25,12 +26,6 @@ class RunCommand(object):
         self.config = ConfigUtil()
         self.dboption = DBOption()
 
-    def get_python_bin(self):
-        python_path = self.config.get("python.home")
-        if python_path is None or len(python_path) == 0:
-            raise Exception("can't find python.home")
-        python_bin = python_path + "/bin/python"
-        return python_bin
 
     # run command
     def run_command(self, job_name):
@@ -50,7 +45,7 @@ class RunCommand(object):
             extend = os.path.splitext(job_script)[1]
 
             if extend == ".py":
-                child = subprocess.Popen([self.get_python_bin(), job_script, "-job", job_name],
+                child = subprocess.Popen([CommonUtil.python_bin(self.config), job_script, "-job", job_name],
                                          stdout=None,
                                          stderr=subprocess.STDOUT,
                                          shell=False)

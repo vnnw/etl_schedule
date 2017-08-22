@@ -3,15 +3,14 @@
 
 import os
 import sys
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import json
 import MySQLdb
-import subprocess
 from bin.configutil import ConfigUtil
 from hivetype import HiveType
 from connection import Connection
+from dataxutil import DataXUtil
 
 config_util = ConfigUtil()
 
@@ -155,7 +154,7 @@ def create_hive_table(hive_db, hive_table, column_list, partition):
         create_sql_str += "\n stored as orc"
         print(create_sql_str)
         # cursor.execute(create_sql_str)
-        #write2File(hive_table + ".sql", create_sql_str)
+        # write2File(hive_table + ".sql", create_sql_str)
         if partition_key is not None:  # 添加新的分区
             partition_sql = "alter table " + hive_table + " add partition(" + partition_key + "='" + partition_value + "')"
             # cursor.execute(partition_sql)
@@ -200,8 +199,6 @@ def process_mysql(options):
     where = options.where
     if where is not None:  # where 条件
         where = where.strip()
-
-
 
     (mysql_db, mysql_table) = parse_mysql_db(options.mysql_db)
     column_list = get_mysql_table_columns(columns, exclude_columns, mysql_db, mysql_table)
@@ -305,14 +302,6 @@ def build_json_file(options, args):
     return datax_json_path
 
 
-def run_datax(json_file):
-    datax_command = config_util.get("datax.path") + " " + json_file
-    print datax_command
-    child_process = subprocess.Popen("python " + datax_command, shell=True)
-    (stdout, stderr) = child_process.communicate()
-    return child_process.returncode
-
-
 '''
 检查导入的数据是否完整,总的记录条数差距 %10
 '''
@@ -391,7 +380,7 @@ if __name__ == "__main__":
             print("需要指定 MySQL 的列名")
             sys.exit(1)
         jsonFile = build_json_file(options, args)
-        code = run_datax(jsonFile)
+        code = DataXUtil.run_datax(config_util, jsonFile)
         if code != 0:
             print("datax 导入失败")
             sys.exit(1)

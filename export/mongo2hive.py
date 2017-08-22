@@ -8,15 +8,13 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import json
-import subprocess
 import yaml
-import pymongo
-import pyhs2
 import datetime
 from hivetype import HiveType
 from bin.configutil import ConfigUtil
 from connection import Connection
 from bin.dateutil import DateUtil
+from dataxutil import DataXUtil
 
 config_util = ConfigUtil()
 
@@ -244,13 +242,6 @@ def build_json_file(options, args):
     return datax_json_path
 
 
-def run_datax(json_file):
-    dataxpath = config_util.get("datax.path")
-    child_process = subprocess.Popen("python " + dataxpath + " " + json_file, shell=True)
-    (stdout, stderr) = child_process.communicate()
-    return child_process.returncode
-
-
 def run_check(options):
     (hive_db, hive_table) = parse_hive_db(options.hive_db)
     (mongo_db, collection) = parse_mongo(options.mongo_db)
@@ -335,7 +326,7 @@ if __name__ == "__main__":
             print("require mongo database.collection")
             sys.exit(1)
         json_file = build_json_file(options, args)
-        code = run_datax(json_file)
+        code = DataXUtil.run_datax(config_util, json_file)
         if code != 0:
             print("datax load failed")
             sys.exit(1)
