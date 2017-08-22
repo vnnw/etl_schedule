@@ -112,7 +112,7 @@ class YamlParser(object):
         hive2excel = project_path + '/export/hive2excel.py'
         odps2hive = project_path + '/export/odps2hive.py'
         command_list = []
-        command_list.append(python_path)
+        command_list += python_path
         if command_key == 'mysql2hive':
             command_list.append(mysql2hive)
             command_list.append("--from")
