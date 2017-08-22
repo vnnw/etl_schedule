@@ -105,7 +105,7 @@ class RunCommand(object):
                         if code != 0:
                             return 1
                 if step_type == 'export':
-                    command_list = yaml_parser.parse_export(self.get_python_bin(), project_path, step, init_day)
+                    command_list = yaml_parser.parse_export(CommonUtil.python_bin(self.config), project_path, step, init_day)
                     if command_list and len(command_list) > 0:
                         for command in command_list:
                             code = self.run_single_command(command)
