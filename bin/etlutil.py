@@ -29,7 +29,7 @@ class ETLUtil(object):
         depended = False
         if dependened_jobs is not None:
             for dependened_job in dependened_jobs:
-                print(dependened_job + " 依赖" + job_name)
+                print(dependened_job["job_name"] + " 依赖 " + job_name)
                 depended = True
         if depended:
             print(job_name + " 被依赖无法删除")
