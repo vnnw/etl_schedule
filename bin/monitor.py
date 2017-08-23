@@ -26,12 +26,20 @@ class Monitor(object):
 
     def monitor(self, job_name):
         etl_job = self.dboption.get_job_info(job_name)
-        main_man = etl_job["main_man"]
-        content = "etl_schedule job:" + job_name + " 运行失败,需要修复"
-        response = self.smsUtil.send(main_man["user_phone"], content)
-        print("sms response:" + str(response))
+        if etl_job is None:
+            print("job 信息不存," + str(job_name))
+        else:
+            main_man = etl_job["main_man"]
+            monitor_user = self.dboption.get_main_man_user(main_man)
+            if monitor_user is None:
+                print("收件人信息不存在," + str(main_man))
+            else:
+                phone = monitor_user["user_phone"]
+                content = "etl_schedule job:" + job_name + " 运行失败,需要修复"
+                response = self.smsUtil.send(phone, content)
+                print("sms response:" + str(response))
 
 # test
 if __name__ == '__main__':
     monitor = Monitor()
-    monitor.monitor_all("STG_T_TEST_1")
+    monitor.monitor("STG_T_TEST_1")
