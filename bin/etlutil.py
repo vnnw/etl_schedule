@@ -33,6 +33,7 @@ class ETLUtil(object):
                 depended = True
         if depended:
             print(job_name + " 被依赖无法删除")
+            return
         stream_jobs = self.dboption.get_stream_job(job_name)
         stream_job_set = set()
         for stream_job in stream_jobs:
