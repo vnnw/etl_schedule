@@ -24,6 +24,15 @@ class ETLUtil(object):
         return True
 
     def remove_etl_job(self, job_name):
+        # 判断是否被依赖
+        dependened_jobs = self.dboption.get_depended_job(job_name)
+        depended = False
+        if dependened_jobs is not None:
+            for dependened_job in dependened_jobs:
+                print(dependened_job + " 依赖" + job_name)
+                depended = True
+        if depended:
+            print(job_name + " 被依赖无法删除")
         stream_jobs = self.dboption.get_stream_job(job_name)
         stream_job_set = set()
         for stream_job in stream_jobs:

@@ -135,7 +135,7 @@ class DBOption(object):
             return None
 
     # 获取需要运行的任务数 状态为 Pending
-    def get_pending_jobs_by_require_time(self, require_time, job_limit): # 方便增加优先级排序
+    def get_pending_jobs_by_require_time(self, require_time, job_limit):  # 方便增加优先级排序
         sql = "select job_name,job_script from t_etl_job where job_status = %s order by pending_time asc limit %s , %s"
         try:
             connection = self.dbUtil.get_connection()
@@ -204,7 +204,7 @@ class DBOption(object):
         try:
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
-            cursor.execute(run_sql, (JOB_RUNNING, time_string, job_name, JOB_PENDING,JOB_RUNNING))
+            cursor.execute(run_sql, (JOB_RUNNING, time_string, job_name, JOB_PENDING, JOB_RUNNING))
             cursor.close()
             connection.commit()
             connection.close()
@@ -360,7 +360,7 @@ class DBOption(object):
             self.logger.error(traceback.format_exc())
             return None
 
-    def get_main_man_by_role(self,role_name):
+    def get_main_man_by_role(self, role_name):
         sql = "select user_phone from t_etl_job_monitor where enable=0 and role = %s"
         try:
             connection = self.dbUtil.get_connection()
@@ -444,7 +444,7 @@ class DBOption(object):
     def remove_etl_job(self, job_name):
         try:
             remove_sql = "delete from t_etl_job where job_name = %s"
-            print remove_sql % "'" + job_name + "'" # 需要输出到控制台
+            print remove_sql % "'" + job_name + "'"  # 需要输出到控制台
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(remove_sql, (job_name,))
@@ -458,7 +458,7 @@ class DBOption(object):
     def remove_etl_dependency_job(self, job_name):
         try:
             remove_sql = "delete from t_etl_job_dependency where job_name = %s"
-            print remove_sql % "'" + job_name + "'" # 需要输出到控制台
+            print remove_sql % "'" + job_name + "'"  # 需要输出到控制台
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(remove_sql, (job_name,))
@@ -472,7 +472,7 @@ class DBOption(object):
     def remove_etl_stream_job(self, job_name):
         try:
             remove_sql = "delete from t_etl_job_stream where stream_job = %s"
-            print remove_sql % "'" + job_name + "'" # 需要输出到控制台
+            print remove_sql % "'" + job_name + "'"  # 需要输出到控制台
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(remove_sql, (job_name,))
@@ -486,7 +486,7 @@ class DBOption(object):
     def remove_etl_job_trigger(self, job_name):
         try:
             remove_sql = "delete from t_etl_job_trigger where job_name = %s"
-            print remove_sql % "'" + job_name + "'" # 需要输出到控制台
+            print remove_sql % "'" + job_name + "'"  # 需要输出到控制台
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
             cursor.execute(remove_sql, (job_name,))
@@ -496,7 +496,6 @@ class DBOption(object):
         except Exception, e:
             self.logger.error(traceback.format_exc())
             return 0
-
 
     def get_before_job(self, job_name):
         try:
@@ -530,7 +529,7 @@ class DBOption(object):
                          "where job_name = %s and run_date = %s and job_status = %s"
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
-            cursor.execute(update_sql,(retry_count,JOB_PENDING,job_name,current_date,JOB_DONE))
+            cursor.execute(update_sql, (retry_count, JOB_PENDING, job_name, current_date, JOB_DONE))
             connection.commit()
             connection.close()
             return cursor.rowcount
@@ -549,7 +548,7 @@ class DBOption(object):
             connection.commit()
             connection.close()
             return cursor.rowcount
-        except Exception,e:
+        except Exception, e:
             self.logger.error(traceback.format_exc())
             return 0
 
@@ -564,11 +563,11 @@ class DBOption(object):
             connection.commit()
             connection.close()
             return cursor.rowcount
-        except Exception,e:
+        except Exception, e:
             self.logger.error(traceback.format_exc())
             return 0
 
-    def execute_sql(self,sql, param):
+    def execute_sql(self, sql, param):
         try:
             connection = self.dbUtil.get_connection()
             cursor = connection.cursor()
@@ -576,6 +575,21 @@ class DBOption(object):
             connection.commit()
             connection.close()
             return cursor.rowcount
-        except Exception,e:
+        except Exception, e:
             self.logger.error(traceback.format_exc())
             return 0
+
+    # 获取job 被哪些 job 依赖
+    def get_depended_job(self, job_name):
+        try:
+            stream_job_sql = "select job_name from t_etl_job_dependency where dependency_job = %s"
+            connection = self.dbUtil.get_connection()
+            cursor = connection.cursor(MySQLdb.cursors.DictCursor)
+            cursor.execute(stream_job_sql, (job_name,))
+            rows = cursor.fetchall()
+            cursor.close()
+            connection.close()
+            return rows
+        except Exception, e:
+            self.logger.error(traceback.format_exc())
+            raise Exception("查询被依赖 job 异常")
