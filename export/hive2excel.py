@@ -36,7 +36,7 @@ def option_parser():
                       help="email subject")
     parser.add_option("-c", "--content", dest="content", action="store", type="string",
                       help="email content")
-    parser.add_option("-t", "--tables", dest="tables", action="store", type="string",
+    parser.add_option("-t", "--table", dest="table", action="store", type="string",
                       help="hive table")
     parser.add_option("-r", "--receivers", dest="receivers", action="store", type="string",
                       help="receiver email split by comma")
