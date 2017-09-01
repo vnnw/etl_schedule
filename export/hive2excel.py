@@ -14,6 +14,7 @@ import email.MIMEBase
 import traceback
 import pyhs2
 from bin.configutil import ConfigUtil
+from bin.sqlparser import SQLParser
 
 DATA_SPLIT = "|"
 
@@ -115,13 +116,23 @@ def query_table(name, tables, query):
         col_list = desc_colums(connection, table)
         # print col_list
         cursor = connection.cursor()
+        include_columns = []
+        if query:
+            include_columns = SQLParser.parse_sql_columns(query)
         col_select_name = []
         col_show_name = []
         for col in col_list:
-            col_select_name.append(col["col_name"])
-            col_show_name.append(col["col_comment"])
+            col_name = col["col_name"]
+            col_comment = col["col_comment"]
+            if include_columns:
+                if col_name in include_columns:
+                    col_select_name.append(col_name)
+                    col_show_name.append(col_comment)
+            else:
+                col_select_name.append(col_name)
+                col_show_name.append(col_comment)
         sql = "select " + ",".join(col_select_name) + " from " + table
-        if query :
+        if query:
             sql = query
         print("sql:" + sql)
         cursor.execute(sql)
@@ -132,9 +143,6 @@ def query_table(name, tables, query):
             for index, val in enumerate(col_select_name):
                 data.append(str(row[index]))
             list_data.append(DATA_SPLIT.join(data))
-        # print list_data
-        # print cursor.getSchema()
-        # write2file(",".join(col_show_name),list_data)
         sheet_name = "工作表" + str(sheet + 1)
         write2excel(workbook, sheet_name, col_show_name, list_data)
     workbook.close()

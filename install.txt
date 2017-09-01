@@ -28,6 +28,8 @@ pip install pyodps==0.6.9
 
 pip install python-ldap==2.4.30
 
+pip install sqlparse==0.2.3
+
 
 # pyhs2
 yum install cyrus-sasl-devel cyrus-sasl-gssapi cyrus-sasl-md5 cyrus-sasl-plain
