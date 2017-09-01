@@ -39,6 +39,8 @@ def option_parser():
                       help="hive table split by comma")
     parser.add_option("-r", "--receivers", dest="receivers", action="store", type="string",
                       help="receiver email split by comma")
+    parser.add_option("-q", "--query", dest="query", action="store", type="string",
+                      help="query with single table")
     return parser
 
 
@@ -101,7 +103,7 @@ def hive_connection(db):
 '''
 
 
-def query_table(name, tables):
+def query_table(name, tables, query):
     excel_path = configUtil.get("tmp.path") + "/excel/" + name + ".xlsx"
     if os.path.exists(excel_path):
         os.remove(excel_path)
@@ -119,6 +121,8 @@ def query_table(name, tables):
             col_select_name.append(col["col_name"])
             col_show_name.append(col["col_comment"])
         sql = "select " + ",".join(col_select_name) + " from " + table
+        if query :
+            sql = query
         print("sql:" + sql)
         cursor.execute(sql)
         rows = cursor.fetch()
@@ -248,8 +252,8 @@ if __name__ == '__main__':
         print("require excel name")
         optParser.print_help()
         sys.exit(-1)
-    if options.tables is None:
-        print("require hive table split by comma")
+    if options.tables is None and options.query is None:
+        print("require hive table split by comma or query")
         optParser.print_help()
         sys.exit(-1)
     if options.receivers is None:
@@ -259,7 +263,7 @@ if __name__ == '__main__':
 
     try:
         (name, tables, receivers_array) = split_args(options, args)
-        excel_path = query_table(name, tables)
+        excel_path = query_table(name, tables, options.query)
         if configUtil.getBooleanOrElse("send.email", True):
             send_email(options.subject.strip(), options.content.strip(), excel_path, receivers_array)
         else:

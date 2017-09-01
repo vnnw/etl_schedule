@@ -195,6 +195,10 @@ class YamlParser(object):
             command_list.append(command_value['hive_db'])
             command_list.append("--receivers")
             command_list.append(command_value['email_receivers'])
+            if command_value.has_key("query") and command_value["query"]:
+                command_list.append("--query")
+                hql = self.replace_sql_param(command_value["query"], vars, init_day)
+                command_list.append(hql)
             return command_list
         if command_key == 'odps2hive':
             command_list.append(odps2hive)

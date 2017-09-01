@@ -5,7 +5,7 @@ import pymongo
 import pyhs2
 import MySQLdb
 from odps import ODPS
-
+from odps import options
 
 class Connection:
 
