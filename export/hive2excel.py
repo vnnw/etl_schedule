@@ -52,7 +52,14 @@ def option_parser():
 
 def split_args(options, args):
     name = options.name.strip()
-    tables = options.tables.strip()
+    tables = options.tables
+    if tables:
+        tables = tables.strip()
+    query = options.query
+    if query:
+        query = query.strip()
+    if query is None and tables is None:
+        raise Exception("require table or hql")
     receivers = options.receivers.strip()
     if name is None or len(name) == 0:
         raise Exception("excel name none")
@@ -62,7 +69,7 @@ def split_args(options, args):
         raise Exception("receivers none")
     tables_array = tables.split(",")
     receivers_array = receivers.split(",")
-    return (name, tables_array, receivers_array)
+    return (name, tables_array, receivers_array,query)
 
 
 '''
@@ -270,8 +277,8 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     try:
-        (name, tables, receivers_array) = split_args(options, args)
-        excel_path = query_table(name, tables, options.query)
+        (name, tables, receivers_array, query) = split_args(options, args)
+        excel_path = query_table(name, tables, query)
         if configUtil.getBooleanOrElse("send.email", True):
             send_email(options.subject.strip(), options.content.strip(), excel_path, receivers_array)
         else:
