@@ -59,6 +59,6 @@ class SQLParser(object):
 
 
 if __name__ == '__main__':
-    sql = "select a as a1 from app_beeper.t1  as t2 left join t3 where a > 20"
-    tables = SQLParser.parse_sql_tables(sql)
+    sql = "select * from app_beeper.t1  as t2 left join t3 where a > 20"
+    tables = SQLParser.parse_sql_columns(sql)
     print tables
