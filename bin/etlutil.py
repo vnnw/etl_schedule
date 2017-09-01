@@ -60,25 +60,20 @@ class ETLUtil(object):
             line = line.strip()
             print line
             line_array = line.split(",")
-            if len(line_array) != 6 and len(line_array) != 8:
-                print("配置格式错误")
-                print(self.time_format)
-                print(self.depdency_format)
-                raise Exception("配置格式错误")
-            else:
-                job_name = line_array[0].upper()
-                job_info = self.dboption.get_job_info(job_name)
-                job_trigger_info = self.dboption.get_etl_job_trigger(job_name)
-                if job_info or job_trigger_info:
-                    # raise Exception("Job:" + job_name + " 已经存在")
-                    print("Job:" + job_name + " 已经存在,需要删除后重新创建!")
-                    self.remove_etl_job(job_name)
-                trigger_type = line_array[1]
-                man = line_array[len(line_array) - 2]
-                script = line_array[len(line_array) - 1].strip()
-                script_path = self.config.get("job.script.path") + "/script/" + script
-                self.check_script_path(script_path)
-                if len(line_array) == 8:
+            job_name = line_array[0].upper()
+            job_info = self.dboption.get_job_info(job_name)
+            job_trigger_info = self.dboption.get_etl_job_trigger(job_name)
+            if job_info or job_trigger_info:
+                # raise Exception("Job:" + job_name + " 已经存在")
+                print("Job:" + job_name + " 已经存在,需要删除后重新创建!")
+                self.remove_etl_job(job_name)
+            trigger_type = line_array[1]
+            man = line_array[len(line_array) - 2]
+            script = line_array[len(line_array) - 1].strip()
+            script_path = self.config.get("job.script.path") + "/script/" + script
+            self.check_script_path(script_path)
+            if trigger_type and trigger_type in ("time", "dependency"):
+                if trigger_type == "time":
                     day = line_array[2]
                     hour = line_array[3]
                     minute = line_array[4]
@@ -86,14 +81,29 @@ class ETLUtil(object):
                     valid = self.check_trigger_job(day, interval)
                     if not valid:
                         raise Exception("Job 配置错误")
+
+                    deps = line_array[6]
+                    add_job_dep_sets = set()
+                    if deps != man:
+                        print "时间触发需要添加依赖:", deps
+                        for dep_job in deps.split(" "):
+                            job = self.dboption.get_job_info(dep_job)
+                            if job is None:
+                                print "依赖的 Job:" + str(dep_job) + " 不存在"
+                                raise Exception("依赖Job :" + dep_job + " 不存在")
+                            add_job_dep_sets.add(dep_job)
+                        print("需要配置依赖:" + ",".join(add_job_dep_sets))
+
                     code = self.dboption.save_time_trigger_job(job_name, trigger_type,
-                                                               day, hour, minute, interval, man, script)
+                                                               day, hour, minute,
+                                                               interval, man, script, add_job_dep_sets)
+
                     if code == 1:
                         print("添加时间触发Job 成功")
                     else:
                         print("添加时间触发Job 失败")
 
-                if len(line_array) == 6:
+                elif trigger_type == "dependency":
                     dep_jobs = line_array[2].strip().upper()
                     stream = line_array[3].strip().upper()
                     # 依赖job,已经依赖的
@@ -104,17 +114,22 @@ class ETLUtil(object):
                             print "依赖的 Job:" + str(dep_job) + " 不存在"
                             raise Exception("依赖Job :" + dep_job + " 不存在")
                         add_job_dep_sets.add(dep_job)
-                    print("需要配置依赖:" + str(add_job_dep_sets))
+                    print("需要配置依赖:" + ",".join(add_job_dep_sets))
                     stream_job = self.dboption.get_job_info(stream)
                     if stream_job is None:
                         raise Exception("Job:" + stream + " 不存在")
                     code = self.dboption.save_depdency_trigger_job(job_name, trigger_type, add_job_dep_sets, stream,
                                                                    man,
-                                                                   script)
+                                                                   script,)
                     if code == 1:
                         print("添加依赖触发Job 成功")
                     else:
                         print("添加依赖触发 Job 失败")
+            else:
+                raise Exception("配置 job 触发方式 :" + str(trigger_type))
+                print(self.time_format)
+                print(self.depdency_format)
+                raise Exception("配置格式错误")
 
     def check_script_path(self, path):
         exists = os.path.exists(path)

@@ -374,7 +374,7 @@ class DBOption(object):
             self.logger.error(traceback.format_exc())
             return None
 
-    def save_time_trigger_job(self, job_name, trigger_type, day, hour, minute, interval, man, script):
+    def save_time_trigger_job(self, job_name, trigger_type, day, hour, minute, interval, man, script, dep_jobs):
         try:
             etl_job_sql = "insert into t_etl_job(job_name,job_status,job_script,job_trigger,main_man)  \
                        values(%s,%s,%s,%s,%s)"
@@ -384,6 +384,11 @@ class DBOption(object):
             time_job = "insert into t_etl_job_trigger(job_name,start_day,start_hour,start_minute,trigger_type) \
                        values(%s,%s,%s,%s,%s)"
             cursor.execute(time_job, (job_name, day, hour, minute, interval))
+            dep_job_sql = "insert into t_etl_job_dependency(job_name,dependency_job) values(%s,%s)"
+            for dep_job in dep_jobs:
+                # 判断是否存在,存在则删除
+                self.remove_dependency(job_name, dep_job)
+                cursor.execute(dep_job_sql, (job_name, dep_job.upper()))
             connection.commit()
             connection.close()
             return cursor.rowcount
