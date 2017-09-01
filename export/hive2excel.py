@@ -135,7 +135,7 @@ def query_table(name, table, query):
     for col in col_list:
         col_name = col["col_name"]
         col_comment = col["col_comment"]
-        if include_columns:
+        if include_columns and len(include_columns) > 0:
             if col_name in include_columns:
                 col_select_name.append(col_name)
                 col_show_name.append(col_comment)
