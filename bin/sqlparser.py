@@ -41,7 +41,6 @@ class SQLParser(object):
         parsed = sqlparse.parse(sql)
         stmt = parsed[0]
         from_seen = False
-        print stmt.tokens
         for token in stmt.tokens:
             if from_seen:
                 if token.ttype is Keyword:
