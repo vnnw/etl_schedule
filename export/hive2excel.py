@@ -37,7 +37,7 @@ def option_parser():
     parser.add_option("-c", "--content", dest="content", action="store", type="string",
                       help="email content")
     parser.add_option("-t", "--tables", dest="tables", action="store", type="string",
-                      help="hive table split by comma")
+                      help="hive table")
     parser.add_option("-r", "--receivers", dest="receivers", action="store", type="string",
                       help="receiver email split by comma")
     parser.add_option("-q", "--query", dest="query", action="store", type="string",
@@ -52,9 +52,9 @@ def option_parser():
 
 def split_args(options, args):
     name = options.name.strip()
-    tables = options.tables
+    table = options.table
     if tables:
-        tables = tables.strip()
+        table = table.strip()
     query = options.query
     if query:
         query = query.strip()
@@ -63,13 +63,10 @@ def split_args(options, args):
     receivers = options.receivers.strip()
     if name is None or len(name) == 0:
         raise Exception("excel name none")
-    if tables is None or len(tables) == 0:
-        raise Exception("hive tables none")
     if receivers is None or len(receivers) == 0:
         raise Exception("receivers none")
-    tables_array = tables.split(",")
     receivers_array = receivers.split(",")
-    return (name, tables_array, receivers_array,query)
+    return (name, table, receivers_array, query)
 
 
 '''
@@ -111,47 +108,54 @@ def hive_connection(db):
 '''
 
 
-def query_table(name, tables, query):
+def query_table(name, table, query):
     excel_path = configUtil.get("tmp.path") + "/excel/" + name + ".xlsx"
     if os.path.exists(excel_path):
         os.remove(excel_path)
     workbook = xlsxwriter.Workbook(excel_path)
-    for sheet, table in enumerate(tables):
-        db_name = table.split(".")[0]
-        table_name = table.split(".")[1]
-        connection = hive_connection(db_name)
-        col_list = desc_colums(connection, table)
-        # print col_list
-        cursor = connection.cursor()
-        include_columns = []
-        if query:
-            include_columns = SQLParser.parse_sql_columns(query)
-        col_select_name = []
-        col_show_name = []
-        for col in col_list:
-            col_name = col["col_name"]
-            col_comment = col["col_comment"]
-            if include_columns:
-                if col_name in include_columns:
-                    col_select_name.append(col_name)
-                    col_show_name.append(col_comment)
+    if table is None:
+        parse_table = SQLParser.parse_sql_tables(query)
+        if parse_table is None:
+            raise Exception("hive 表解析失败")
+        else:
+            if len(parse_table) > 1:
+                raise Exception("只支持 hive 单表发邮件")
             else:
+                table = parse_table[0]
+    db_name = table.split(".")[0]
+    connection = hive_connection(db_name)
+    col_list = desc_colums(connection, table)
+    # print col_list
+    cursor = connection.cursor()
+    include_columns = []
+    if query:
+        include_columns = SQLParser.parse_sql_columns(query)
+    col_select_name = []
+    col_show_name = []
+    for col in col_list:
+        col_name = col["col_name"]
+        col_comment = col["col_comment"]
+        if include_columns:
+            if col_name in include_columns:
                 col_select_name.append(col_name)
                 col_show_name.append(col_comment)
-        sql = "select " + ",".join(col_select_name) + " from " + table
-        if query:
-            sql = query
-        print("sql:" + sql)
-        cursor.execute(sql)
-        rows = cursor.fetch()
-        list_data = []
-        for row in rows:
-            data = []
-            for index, val in enumerate(col_select_name):
-                data.append(str(row[index]))
-            list_data.append(DATA_SPLIT.join(data))
-        sheet_name = "工作表" + str(sheet + 1)
-        write2excel(workbook, sheet_name, col_show_name, list_data)
+        else:
+            col_select_name.append(col_name)
+            col_show_name.append(col_comment)
+    sql = "select " + ",".join(col_select_name) + " from " + table
+    if query:
+        sql = query
+    print("sql:" + sql)
+    cursor.execute(sql)
+    rows = cursor.fetch()
+    list_data = []
+    for row in rows:
+        data = []
+        for index, val in enumerate(col_select_name):
+            data.append(str(row[index]))
+        list_data.append(DATA_SPLIT.join(data))
+    sheet_name = "工作表" + str(1)
+    write2excel(workbook, sheet_name, col_show_name, list_data)
     workbook.close()
     return excel_path
 
@@ -268,7 +272,7 @@ if __name__ == '__main__':
         optParser.print_help()
         sys.exit(-1)
     if options.tables is None and options.query is None:
-        print("require hive table split by comma or query")
+        print("require hive table or query")
         optParser.print_help()
         sys.exit(-1)
     if options.receivers is None:
@@ -277,8 +281,8 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     try:
-        (name, tables, receivers_array, query) = split_args(options, args)
-        excel_path = query_table(name, tables, query)
+        (name, table, receivers_array, query) = split_args(options, args)
+        excel_path = query_table(name, table, query)
         if configUtil.getBooleanOrElse("send.email", True):
             send_email(options.subject.strip(), options.content.strip(), excel_path, receivers_array)
         else:

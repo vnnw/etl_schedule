@@ -191,7 +191,7 @@ class YamlParser(object):
             command_list.append(command_value['email_subject'])
             command_list.append("--content")
             command_list.append(command_value['email_content'])
-            command_list.append("--tables")
+            command_list.append("--table")
             command_list.append(command_value['hive_db'])
             command_list.append("--receivers")
             command_list.append(command_value['email_receivers'])
