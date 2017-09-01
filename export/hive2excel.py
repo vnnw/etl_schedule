@@ -53,12 +53,12 @@ def option_parser():
 def split_args(options, args):
     name = options.name.strip()
     table = options.table
-    if tables:
+    if table:
         table = table.strip()
     query = options.query
     if query:
         query = query.strip()
-    if query is None and tables is None:
+    if query is None and table is None:
         raise Exception("require table or hql")
     receivers = options.receivers.strip()
     if name is None or len(name) == 0:
@@ -271,7 +271,7 @@ if __name__ == '__main__':
         print("require excel name")
         optParser.print_help()
         sys.exit(-1)
-    if options.tables is None and options.query is None:
+    if options.table is None and options.query is None:
         print("require hive table or query")
         optParser.print_help()
         sys.exit(-1)
