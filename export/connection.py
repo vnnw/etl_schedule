@@ -4,6 +4,7 @@
 import pymongo
 import pyhs2
 import MySQLdb
+from odps import ODPS
 
 
 class Connection:
@@ -26,7 +27,8 @@ class Connection:
                                    authMechanism="PLAIN",
                                    user=username,
                                    password=password,
-                                   database=hive_db)
+                                   database=hive_db,
+                                   timeout=60000)
         return connection
 
     @staticmethod
@@ -63,3 +65,11 @@ class Connection:
             "table": "t_datax_monitor"
         }
         return static_dict
+
+    @staticmethod
+    def get_odps_connection(config_util,odps_db):
+        access_id = config_util.get("odps_accessId")
+        access_key = config_util.get("odps_accessKey")
+        endpoint = config_util.get("odps_endpoint")
+        odps = ODPS(access_id, access_key, odps_db, endpoint=endpoint)
+        return odps

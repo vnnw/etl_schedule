@@ -7,7 +7,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import json
-from odps import ODPS
+
 from bin.configutil import ConfigUtil
 from hivetype import HiveType
 from connection import Connection
@@ -36,14 +36,6 @@ def get_option_parser():
 '''
  获取 odps 连接
 '''
-
-
-def get_odps_connection(odps_db):
-    access_id = config_util.get("odps_accessId")
-    access_key = config_util.get("odps_accessKey")
-    endpoint = config_util.get("odps_endpoint")
-    odps = ODPS(access_id, access_key, odps_db, endpoint=endpoint)
-    return odps
 
 
 def read_base_json():
@@ -77,7 +69,7 @@ def read_base_json():
 
 # List[(columnName,columnType,comment)]
 def get_odps_table_columns(columns, exclude_columns, odps_db, odps_table):
-    odps = get_odps_connection(odps_db)
+    odps = Connection.get_odps_connection(config_util, odps_db)
     t = odps.get_table(odps_table)
 
     exclude_columns_set = set()
@@ -284,7 +276,7 @@ def run_check(options):
 
     print "count_odps_sql:" + count_odps
 
-    odps = get_odps_connection(odps_db)
+    odps = Connection.get_odps_connection(config_util, odps_db)
     odps_count = 0
     with odps.execute_sql(count_odps).open_reader() as reader:
         for record in reader:
