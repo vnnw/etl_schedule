@@ -185,6 +185,9 @@ class YamlParser(object):
             return command_list
         if command_key == 'hive2excel':
             command_list.append(hive2excel)
+            vars = {}
+            if command_value.has_key("vars") and command_value["vars"]:
+                vars = command_value["vars"]
             command_list.append("--name")
             command_list.append(command_value['excel_name'])
             command_list.append("--subject")
