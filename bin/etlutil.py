@@ -23,21 +23,22 @@ class ETLUtil(object):
             return False
         return True
 
-    def remove_etl_job(self, job_name):
+    def remove_etl_job(self, job_name, should_check=True):
         job_info = self.dboption.get_job_info(job_name)
         if job_info is None:
             print(job_name + " 不存在,无法删除")
             return
-        # 判断是否被依赖
-        dependened_jobs = self.dboption.get_depended_job(job_name)
-        depended = False
-        if dependened_jobs is not None:
-            for dependened_job in dependened_jobs:
-                print(dependened_job["job_name"] + " 依赖 " + job_name)
-                depended = True
-        if depended:
-            print(job_name + " 被依赖无法删除")
-            return
+        if should_check:
+            # 判断是否被依赖
+            dependened_jobs = self.dboption.get_depended_job(job_name)
+            depended = False
+            if dependened_jobs is not None:
+                for dependened_job in dependened_jobs:
+                    print(dependened_job["job_name"] + " 依赖 " + job_name)
+                    depended = True
+            if depended:
+                print(job_name + " 被依赖无法删除")
+                return
         stream_jobs = self.dboption.get_stream_job(job_name)
         stream_job_set = set()
         for stream_job in stream_jobs:
@@ -66,7 +67,7 @@ class ETLUtil(object):
             if job_info or job_trigger_info:
                 # raise Exception("Job:" + job_name + " 已经存在")
                 print("Job:" + job_name + " 已经存在,需要删除后重新创建!")
-                self.remove_etl_job(job_name)
+                self.remove_etl_job(job_name,should_check=False)
             trigger_type = line_array[1]
             man = line_array[len(line_array) - 2]
             script = line_array[len(line_array) - 1].strip()
