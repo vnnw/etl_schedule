@@ -102,7 +102,7 @@ def desc_comment(connection, table):
             table_comment = line.replace("COMMENT", "").strip().replace("'", "")
             if len(match & set(table_comment)) != 0 or len(table_comment) > 31:
                 comment = ""
-                print "table_comment :" + str(table_comment) + " 包含特殊字符 长度:" + str(len(table_comment))
+                print "table_comment :" + str(table_comment) + " 包含特殊字符,或者长度大于 31 长度:" + str(len(table_comment))
             else:
                 comment = table_comment
     cursor.close()
