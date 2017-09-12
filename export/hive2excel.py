@@ -100,7 +100,7 @@ def desc_comment(connection, table):
         line = row[0]
         if line.startswith("COMMENT"):
             table_comment = line.replace("COMMENT", "").strip().replace("'", "")
-            if (match & set(table_comment)) is not None:
+            if len(match & set(table_comment)) != 0:
                 comment = ""
                 print "table_comment :" + str(table_comment) + " 包含特殊字符"
             else:
