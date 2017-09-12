@@ -167,7 +167,7 @@ def query_table(name, tables, query):
             for index, val in enumerate(col_select_name):
                 data.append(str(row[index]))
             list_data.append(DATA_SPLIT.join(data))
-        comment = desc_comment(connection, db_name)
+        comment = desc_comment(connection, table)
         if comment and len(comment) > 0:
             sheet_name = comment
         else:
