@@ -67,7 +67,7 @@ class ETLUtil(object):
             if job_info or job_trigger_info:
                 # raise Exception("Job:" + job_name + " 已经存在")
                 print("Job:" + job_name + " 已经存在,需要删除后重新创建!")
-                self.remove_etl_job(job_name,should_check=False)
+                self.remove_etl_job(job_name, should_check=False)
             trigger_type = line_array[1]
             man = line_array[len(line_array) - 2]
             script = line_array[len(line_array) - 1].strip()

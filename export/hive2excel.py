@@ -12,9 +12,9 @@ import email.MIMEMultipart
 import email.MIMEText
 import email.MIMEBase
 import traceback
-import pyhs2
 from bin.configutil import ConfigUtil
 from bin.sqlparser import SQLParser
+from connection import Connection
 
 DATA_SPLIT = "|"
 
@@ -37,7 +37,7 @@ def option_parser():
     parser.add_option("-c", "--content", dest="content", action="store", type="string",
                       help="email content")
     parser.add_option("-t", "--table", dest="table", action="store", type="string",
-                      help="hive table")
+                      help="hive table split by comma")
     parser.add_option("-r", "--receivers", dest="receivers", action="store", type="string",
                       help="receiver email split by comma")
     parser.add_option("-q", "--query", dest="query", action="store", type="string",
@@ -89,18 +89,18 @@ def desc_colums(connection, table):
     return col_list
 
 
-def hive_connection(db):
-    host = configUtil.get("hive.host")
-    port = configUtil.get("hive.port")
-    username = configUtil.get("hive.username")
-    password = configUtil.get("hive.password")
-    connection = pyhs2.connect(host=host,
-                               port=int(port),
-                               authMechanism="PLAIN",
-                               user=username,
-                               password=password,
-                               database=db)
-    return connection
+def desc_comment(connection, table):
+    comment = ""
+    cursor = connection.cursor()
+    cursor.execute("show create table " + table)
+    rows = cursor.fetch()
+    for row in rows:
+        line = row[0]
+        if line.startswith("COMMENT"):
+            comment = line.replace("COMMENT", "").strip().replace("'", "")
+    cursor.close()
+    return comment
+
 
 
 '''
@@ -108,12 +108,13 @@ def hive_connection(db):
 '''
 
 
-def query_table(name, table, query):
+def query_table(name, tables, query):
     excel_path = configUtil.get("tmp.path") + "/excel/" + name + ".xlsx"
     if os.path.exists(excel_path):
         os.remove(excel_path)
     workbook = xlsxwriter.Workbook(excel_path)
-    if table is None:
+    table_array = []
+    if tables is None: # hive 表为空
         parse_table = SQLParser.parse_sql_tables(query)
         if parse_table is None:
             raise Exception("hive 表解析失败")
@@ -122,40 +123,57 @@ def query_table(name, table, query):
                 raise Exception("只支持 hive 单表发邮件")
             else:
                 table = parse_table[0]
-    db_name = table.split(".")[0]
-    connection = hive_connection(db_name)
-    col_list = desc_colums(connection, table)
-    # print col_list
-    cursor = connection.cursor()
-    include_columns = []
-    if query:
-        include_columns = SQLParser.parse_sql_columns(query)
-    col_select_name = []
-    col_show_name = []
-    for col in col_list:
-        col_name = col["col_name"]
-        col_comment = col["col_comment"]
-        if include_columns and len(include_columns) > 0:
-            if col_name in include_columns:
+                table_array.append(table)
+    else: # hive 表不为空,可能有多个
+        table_split = tables.split(",")
+        if table_split is None or  len(table_split) == 0 :
+            raise Exception("hive table 配置解析异常")
+        for table in table_split:
+            if table not in table_array:
+                table_array.append(table)
+
+    print("export table:" + ",".join(table_array))
+    sheet = 0
+    for table in table_array:
+        db_name = table.split(".")[0]
+        connection = Connection.get_hive_connection(configUtil, db_name)
+        col_list = desc_colums(connection, table)
+        # print col_list
+        cursor = connection.cursor()
+        include_columns = []
+        if query:
+            include_columns = SQLParser.parse_sql_columns(query)
+        col_select_name = []
+        col_show_name = []
+        for col in col_list:
+            col_name = col["col_name"]
+            col_comment = col["col_comment"]
+            if include_columns and len(include_columns) > 0:
+                if col_name in include_columns:
+                    col_select_name.append(col_name)
+                    col_show_name.append(col_comment)
+            else:
                 col_select_name.append(col_name)
                 col_show_name.append(col_comment)
+        sql = "select " + ",".join(col_select_name) + " from " + table
+        if query:
+            sql = query
+        print("sql:" + sql)
+        cursor.execute(sql)
+        rows = cursor.fetch()
+        list_data = []
+        for row in rows:
+            data = []
+            for index, val in enumerate(col_select_name):
+                data.append(str(row[index]))
+            list_data.append(DATA_SPLIT.join(data))
+        comment = desc_comment(connection, db_name)
+        if comment and len(comment) > 0:
+            sheet_name = comment
         else:
-            col_select_name.append(col_name)
-            col_show_name.append(col_comment)
-    sql = "select " + ",".join(col_select_name) + " from " + table
-    if query:
-        sql = query
-    print("sql:" + sql)
-    cursor.execute(sql)
-    rows = cursor.fetch()
-    list_data = []
-    for row in rows:
-        data = []
-        for index, val in enumerate(col_select_name):
-            data.append(str(row[index]))
-        list_data.append(DATA_SPLIT.join(data))
-    sheet_name = "工作表" + str(1)
-    write2excel(workbook, sheet_name, col_show_name, list_data)
+            sheet += 1
+            sheet_name = "工作表" + str(sheet)
+        write2excel(workbook, sheet_name, col_show_name, list_data)
     workbook.close()
     return excel_path
 
@@ -273,6 +291,10 @@ if __name__ == '__main__':
         sys.exit(-1)
     if options.table is None and options.query is None:
         print("require hive table or query")
+        optParser.print_help()
+        sys.exit(-1)
+    if options.table is not None and options.query is not None:
+        print("hive table , query 只能配置一个")
         optParser.print_help()
         sys.exit(-1)
     if options.receivers is None:

@@ -7,11 +7,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import datetime
 import random
-import pyhs2
 import traceback
 import subprocess
 import shutil
 from bin.configutil import ConfigUtil
+from connection import Connection
 
 config_util = ConfigUtil()
 DATA_SPLIT = "|"
@@ -37,19 +37,6 @@ run hql > data
 '''
 
 
-def hive_connection(db):
-    host = config_util.get("hive.host")
-    port = config_util.get("hive.port")
-    username = config_util.get("hive.username")
-    password = config_util.get("hive.password")
-    connection = pyhs2.connect(host=host,
-                               port=int(port),
-                               authMechanism="PLAIN",
-                               user=username,
-                               password=password,
-                               database=db)
-    return connection
-
 def create_tmp_dir():
     mills = datetime.datetime.now().microsecond
     rand = random.randint(1, 100)
@@ -67,7 +54,7 @@ def create_tmp_file():
 def run_hsql(table, hive_hql):
     try:
         db = table.split(".")[0]
-        connection = hive_connection(db)
+        connection = Connection.get_hive_connection(config_util, db)
         print "start run hive table :" + str(table)
         sys.stdout.flush()
         hive_query = "select * from " + table
