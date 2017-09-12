@@ -100,9 +100,9 @@ def desc_comment(connection, table):
         line = row[0]
         if line.startswith("COMMENT"):
             table_comment = line.replace("COMMENT", "").strip().replace("'", "")
-            if len(match & set(table_comment)) != 0:
+            if len(match & set(table_comment)) != 0 or len(table_comment) > 31:
                 comment = ""
-                print "table_comment :" + str(table_comment) + " 包含特殊字符"
+                print "table_comment :" + str(table_comment) + " 包含特殊字符 长度:" + str(len(table_comment))
             else:
                 comment = table_comment
     cursor.close()
@@ -174,10 +174,10 @@ def query_table(name, tables, query):
                 data.append(str(row[index]))
             list_data.append(DATA_SPLIT.join(data))
         comment = desc_comment(connection, table)
+        sheet += 1
         if comment and len(comment) > 0:
             sheet_name = comment
         else:
-            sheet += 1
             sheet_name = "工作表" + str(sheet)
         write2excel(workbook, sheet_name, col_show_name, list_data)
     workbook.close()
