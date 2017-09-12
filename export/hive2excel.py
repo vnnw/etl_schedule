@@ -6,6 +6,7 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
+import re
 import xlsxwriter
 import smtplib
 import email.MIMEMultipart
@@ -90,6 +91,7 @@ def desc_colums(connection, table):
 
 
 def desc_comment(connection, table):
+    match = set("[,],?,*,/,\\,@".split(","))
     comment = ""
     cursor = connection.cursor()
     cursor.execute("show create table " + table)
@@ -97,10 +99,14 @@ def desc_comment(connection, table):
     for row in rows:
         line = row[0]
         if line.startswith("COMMENT"):
-            comment = line.replace("COMMENT", "").strip().replace("'", "")
+            table_comment = line.replace("COMMENT", "").strip().replace("'", "")
+            if (match & set(table_comment)) is not None:
+                comment = ""
+                print "table_comment :" + str(table_comment) + " 包含特殊字符"
+            else:
+                comment = table_comment
     cursor.close()
     return comment
-
 
 
 '''
@@ -114,7 +120,7 @@ def query_table(name, tables, query):
         os.remove(excel_path)
     workbook = xlsxwriter.Workbook(excel_path)
     table_array = []
-    if tables is None: # hive 表为空
+    if tables is None:  # hive 表为空
         parse_table = SQLParser.parse_sql_tables(query)
         if parse_table is None:
             raise Exception("hive 表解析失败")
@@ -124,9 +130,9 @@ def query_table(name, tables, query):
             else:
                 table = parse_table[0]
                 table_array.append(table)
-    else: # hive 表不为空,可能有多个
+    else:  # hive 表不为空,可能有多个
         table_split = tables.split(",")
-        if table_split is None or  len(table_split) == 0 :
+        if table_split is None or len(table_split) == 0:
             raise Exception("hive table 配置解析异常")
         for table in table_split:
             if table not in table_array:
