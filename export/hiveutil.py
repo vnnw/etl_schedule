@@ -3,11 +3,13 @@
 
 import os
 import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import datetime
 import random
 import pyhs2
 from bin.configutil import ConfigUtil
+
 
 class HiveUtil:
     def __init__(self):
@@ -29,14 +31,14 @@ class HiveUtil:
         for var in vars:
             self.add_var(var)
 
-    def add_sql_paths(self,base_path,sql_paths):
+    def add_sql_paths(self, base_path, sql_paths):
         for sql_path in sql_paths:
             self.add_sql_path(base_path, sql_path)
 
-    def add_sql_path(self,base_path,sql_path):
+    def add_sql_path(self, base_path, sql_path):
         if base_path and len(base_path) > 0:
             sql_path = base_path + "/" + sql_path
-        sql_handler = open(sql_path,'r')
+        sql_handler = open(sql_path, 'r')
         sqls = ""
         for line in sql_handler.readlines():
             sqls += line
@@ -102,44 +104,69 @@ class HiveUtil:
             connection.close()
             return -1
 
-    def run_sql_client(self):
-        hiveHome = self.config.get("hive.path")
-        if hiveHome is None:
+    def run_sql_hive(self, sql_path):
+        print("使用Hive 运行 SQL 文件")
+        sys.stdout.flush()
+        hive_home = self.config.get("hive.path")
+        if hive_home is None:
             raise Exception("HIVE_HOME 环境变量没有设置")
-        command_bin = hiveHome + "/bin/hive"
-        tmpdir = self.config.get("tmp.path") + "/hqls"
+        command_bin = hive_home + "/bin/hive"
+        code = os.system(command_bin + " -f " + sql_path)
+        if code != 0:
+            print "run hql by hive error exit"
+            return 1
+        return code
+
+    def run_sql_spark(self, sql_path):
+        print("使用Spark 运行 SQL 文件")
+        spark_home = self.config.get("spark.path")
+        if spark_home is None:
+            raise Exception("SPARK_HOME 环境变量没有设置")
+        command_list = list()
+        command_list.append(spark_home + "/bin/spark-sql")
+        spark_sql_opt = self.config.get("spark.sql.opt")
+        command_list.append(spark_sql_opt)
+        command_bin = " ".join(command_list) + " -f " + sql_path
+        print("command:" + str(command_bin))
+        sys.stdout.flush()
+        code = os.system(command_bin)
+        if code != 0:
+            print "run hql by spark error exit"
+            return 1
+
+        return code
+
+    def run_sql_client(self):
+        tmp_dir = self.config.get("tmp.path") + "/hqls"
         try:
             for sql in self.sqls:
                 print "start run hql:" + str(sql)
-                sys.stdout.flush()
                 mills = datetime.datetime.now().microsecond
                 rand = random.randint(1, 100)
-                if not os.path.exists(tmpdir):
-                    os.makedirs(tmpdir)
-                tmppath = tmpdir + "/" + str(mills) + "-" + str(rand) + ".hql"
-                print "tmp path " + str(tmppath)
-                sys.stdout.flush()
-                tmp_file = open(tmppath, "w")
+                if not os.path.exists(tmp_dir):
+                    os.makedirs(tmp_dir)
+                tmp_path = tmp_dir + "/" + str(mills) + "-" + str(rand) + ".hql"
+                print "tmp path " + str(tmp_path)
+                tmp_file = open(tmp_path, "w")
                 for var in self.vars:
                     tmp_file.write(var + '\n')
                 tmp_file.flush()
                 tmp_file.write(sql)
                 tmp_file.flush()
                 tmp_file.close()
-                code = os.system(command_bin + " -f " + tmppath)
-                #os.remove(tmppath)
-                if code != 0:
-                    print "run hql error exit"
-                    sys.stdout.flush()
-                    return -1
+                sys.stdout.flush()
+                if self.config.getBooleanOrElse("spark.sql.run", False):
+                    code = self.run_sql_spark(tmp_path)
+                    if code == 0:
+                        return code
+                    else:
+                        code = self.run_sql_hive(tmp_path)
+                        return code
+                else:
+                    code = self.run_sql_hive(tmp_path)
+                    return code
             return 0
         except Exception, e:
             print(e)
             sys.stdout.flush()
             return 1
-
-    def check_run_code(self, code=-1):
-        if code == 0:
-            sys.exit(0)
-        else:
-            sys.exit(1)

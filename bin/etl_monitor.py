@@ -6,9 +6,7 @@ from configutil import ConfigUtil
 from dateutil import DateUtil
 from dbutil import DBUtil
 from smsutil import SMSUtil
-import json
 import MySQLdb
-import urllib2
 from dboption import DBOption
 import datetime
 import traceback
