@@ -69,7 +69,6 @@ if __name__ == '__main__':
         hive_tables = get_hive_tables(hive_connection)
         if hive_table.strip() in hive_tables:
             print table + " 在hive中已经存在: ods_mysql." + hive_table
-            break
         connection = Connection.get_mysql_connection(config_util, db)
         tables = get_tables(connection, db)
         connection.close()
