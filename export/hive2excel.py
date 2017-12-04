@@ -229,7 +229,7 @@ def write2excel(workbook, sheet_name, head, data):
 def send_email(subject, content, excel_path, receivers_array):
     contype = 'application/octet-stream'
     maintype, subtype = contype.split('/', 1)
-    server = smtplib.SMTP("smtp.263.net")
+    server = smtplib.SMTP_SSL(host=configUtil.get("email.host"),port=configUtil.get("email.port"))
     server.login(configUtil.get("email.username"), configUtil.get("email.password"))
     main_msg = email.MIMEMultipart.MIMEMultipart()
     text_msg = email.MIMEText.MIMEText(content, 'plain', "utf-8")

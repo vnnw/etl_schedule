@@ -32,7 +32,7 @@ class Connection:
         return connection
 
     @staticmethod
-    def get_mysql_config(config_util,mysql_db):
+    def get_mysql_config(config_util, mysql_db):
         prefix = "mysql" + "." + mysql_db
         db_config = {}
         db_config["username"] = config_util.get(prefix + ".username")

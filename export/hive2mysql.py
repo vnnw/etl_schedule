@@ -3,6 +3,7 @@
 
 import os
 import sys
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from optparse import OptionParser
 import datetime
@@ -16,6 +17,7 @@ from connection import Connection
 config_util = ConfigUtil()
 DATA_SPLIT = "|"
 
+
 def get_option_parser():
     usage = "usage: %prog [options] arg1 arg2"
 
@@ -24,7 +26,7 @@ def get_option_parser():
     parser.add_option("-s", "--sql", dest="mysql_sql", action="store", type="string", help="mysql sql")
     parser.add_option("-i", "--hive", dest="hive_table", action="store", type="string", help="hive table")
     parser.add_option("-t", "--to", dest="mysql_db", action="store", help="mysql database.table")
-    parser.add_option("-q", "--query", dest="hive_hql", action="store",help="hive query hql")
+    parser.add_option("-q", "--query", dest="hive_hql", action="store", help="hive query hql")
     parser.add_option("-c", "--columns", dest="mysql_columns", action="store",
                       help="mysql table columns split by comma")
     parser.add_option("-m", "--mode", dest="mode", action="store", help="overwrite or append")
@@ -45,11 +47,13 @@ def create_tmp_dir():
         os.makedirs(tmpdatadir)
     return tmpdatadir
 
+
 def create_tmp_file():
     basedir = create_tmp_dir()
     mills = datetime.datetime.now().microsecond
     rand = random.randint(1, 100)
     return basedir + "/" + str(mills) + "-" + str(rand) + ".data"
+
 
 def run_hsql(table, hive_hql):
     try:
@@ -79,11 +83,11 @@ def run_hsql(table, hive_hql):
                 for index in range(0, len(row)):
                     value = row[index]
                     value_str = str(value)
-                    value_str = value_str.replace("\\", "\\\\").replace("|",";")
+                    value_str = value_str.replace("\\", "\\\\").replace("|", ";")
                     if value_str == "None":
                         value_str = "\N"
                     data.append(value_str.strip())
-                write_handler.writelines(DATA_SPLIT.join(data)+'\n')
+                write_handler.writelines(DATA_SPLIT.join(data) + '\n')
                 write_handler.flush()
         write_handler.close()
         connection.close()
@@ -94,29 +98,19 @@ def run_hsql(table, hive_hql):
         return (-1, None)
 
 
-def get_mysql_config(mysql_db):
-    prefix = "mysql" + "." + mysql_db
-    dbConfig = {}
-    dbConfig["username"] = config_util.get(prefix + ".username")
-    dbConfig["password"] = config_util.get(prefix + ".password")
-    dbConfig["host"] = config_util.get(prefix + ".host")
-    dbConfig["port"] = config_util.get(prefix + ".port")
-    return dbConfig
-
-
 def get_username_password():
     mysql_db_table = options.mysql_db.split(".")
     mysql_db = mysql_db_table[0]
-    mysql_table = mysql_db_table[1]
-    db_info = get_mysql_config(mysql_db)
-    return (db_info["username"], db_info["password"], db_info["host"])
+    db_info = Connection.get_mysql_config(config_util, mysql_db)
+    return (db_info["username"], db_info["password"], db_info["host"], db_info["port"])
 
 
 def run_mysql_command(command):
-    (username, password, host) = get_username_password()
+    (username, password, host, port) = get_username_password()
     mysql_path = config_util.get("mysql.path")
     print mysql_path
-    run_command = mysql_path + "/bin/mysql -u" + username + " -p" + password + " -h" + host + " -e \"" + command + "\""
+    run_command = mysql_path + "/bin/mysql -u" + username + " -p" + password + " -h" + host + " -P" + str(port) \
+                  + " -e \"" + command + "\""
     print("run_command:" + str(run_command))
     try:
         code = os.system(run_command)
@@ -132,19 +126,18 @@ load data to mysql
 
 
 def load_mysql(db, columns, tmpdata):
-
     # split file
     file_name = os.path.basename(tmpdata)
-    split_prefix= "split." + file_name + "."
+    split_prefix = "split." + file_name + "."
     split_dir = create_tmp_dir()
-    split_command = "split -d -a 4 -l 30000 "+ tmpdata + " " + split_dir + "/" + split_prefix
+    split_command = "split -d -a 4 -l 30000 " + tmpdata + " " + split_dir + "/" + split_prefix
     split_process = subprocess.Popen(split_command, shell=True, stdout=subprocess.PIPE)
     split_result = split_process.wait()
     if split_result == 0:
         for file in os.listdir(split_dir):
             print "导入 MySQL数据文件:" + str(file)
             command = "load data local infile '" + split_dir + "/" + file + "' INTO TABLE " + db \
-              + " fields terminated by '" + DATA_SPLIT +"' (" + columns + ")"
+                      + " fields terminated by '" + DATA_SPLIT + "' (" + columns + ")"
             code = run_mysql_command(command)
             if code != 0:
                 return code
@@ -175,7 +168,7 @@ def run(options, args):
     db = options.mysql_db.strip()
     columns = options.mysql_columns.strip()
     try:
-        (code, tmpdata) = run_hsql(hive_table,hive_hql)
+        (code, tmpdata) = run_hsql(hive_table, hive_hql)
         if code == 0:
             if msql is not None and len(msql) > 0:
                 mcode = run_sql(msql)
@@ -184,7 +177,7 @@ def run(options, args):
                     return -1
             lcode = load_mysql(db, columns, tmpdata)
             if lcode != 0:
-                #os.remove(tmpdata)
+                # os.remove(tmpdata)
                 print("load data error")
                 return -1
             else:
@@ -195,6 +188,7 @@ def run(options, args):
     except Exception, e:
         print(e)
         return -1
+
 
 if __name__ == "__main__":
     reload(sys)
