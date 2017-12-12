@@ -9,9 +9,8 @@ from optparse import OptionParser
 import re
 import xlsxwriter
 import smtplib
-import email.MIMEMultipart
-import email.MIMEText
-import email.MIMEBase
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import traceback
 from bin.configutil import ConfigUtil
 from bin.sqlparser import SQLParser
@@ -231,17 +230,17 @@ def send_email(subject, content, excel_path, receivers_array):
     maintype, subtype = contype.split('/', 1)
     server = smtplib.SMTP_SSL(host=configUtil.get("email.host"),port=configUtil.get("email.port"))
     server.login(configUtil.get("email.username"), configUtil.get("email.password"))
-    main_msg = email.MIMEMultipart.MIMEMultipart()
-    text_msg = email.MIMEText.MIMEText(content, 'plain', "utf-8")
+    main_msg = MIMEMultipart.MIMEMultipart()
+    text_msg = MIMEText.MIMEText(content, 'plain', "utf-8")
     # email text
     main_msg.attach(text_msg)
     #  email attach
     print "excel path:" + str(excel_path)
     data = open(excel_path, 'rb')
-    attach = email.MIMEText(data.read(), 'base64', 'gb2312')
+    attach = MIMEText(data.read(), 'base64', 'utf-8')
     basename = os.path.basename(excel_path)
     attach["Content-Type"] = 'application/octet-stream'
-    attach.add_header('Content-Disposition', 'attachment', filename=basename.encode("gb2312"))
+    attach.add_header('Content-Disposition', 'attachment', filename=basename.encode("utf-8"))
     main_msg.attach(attach)
     main_msg["Accept-Language"] = "zh-CN"
     main_msg["Accept-Charset"] = "utf-8"
