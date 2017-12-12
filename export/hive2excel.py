@@ -238,13 +238,11 @@ def send_email(subject, content, excel_path, receivers_array):
     #  email attach
     print "excel path:" + str(excel_path)
     data = open(excel_path, 'rb')
-    file_msg = email.MIMEBase.MIMEBase(maintype, subtype)
-    file_msg.set_payload(data.read())
-    data.close()
-    email.Encoders.encode_base64(file_msg)
+    attach = email.MIMEText(data.read(), 'base64', 'gb2312')
     basename = os.path.basename(excel_path)
-    file_msg.add_header('Content-Disposition', 'attachment', filename=basename)
-    main_msg.attach(file_msg)
+    attach["Content-Type"] = 'application/octet-stream'
+    attach.add_header('Content-Disposition', 'attachment', filename=basename.encode("gb2312"))
+    main_msg.attach(attach)
     main_msg["Accept-Language"] = "zh-CN"
     main_msg["Accept-Charset"] = "utf-8"
     main_msg['From'] = configUtil.get("email.username")
