@@ -230,8 +230,8 @@ def send_email(subject, content, excel_path, receivers_array):
     maintype, subtype = contype.split('/', 1)
     server = smtplib.SMTP_SSL(host=configUtil.get("email.host"),port=configUtil.get("email.port"))
     server.login(configUtil.get("email.username"), configUtil.get("email.password"))
-    main_msg = MIMEMultipart.MIMEMultipart()
-    text_msg = MIMEText.MIMEText(content, 'plain', "utf-8")
+    main_msg = MIMEMultipart()
+    text_msg = MIMEText(content, 'plain', "utf-8")
     # email text
     main_msg.attach(text_msg)
     #  email attach
