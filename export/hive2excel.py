@@ -237,10 +237,10 @@ def send_email(subject, content, excel_path, receivers_array):
     #  email attach
     print "excel path:" + str(excel_path)
     data = open(excel_path, 'rb')
-    attach = MIMEText(data.read(), 'base64', 'utf-8')
+    attach = MIMEText(data.read(), 'base64', 'gb2312')
     basename = os.path.basename(excel_path)
     attach["Content-Type"] = 'application/octet-stream'
-    attach.add_header('Content-Disposition', 'attachment', filename=basename.encode("utf-8"))
+    attach.add_header('Content-Disposition', 'attachment', filename=basename.encode("gb2312"))
     main_msg.attach(attach)
     main_msg["Accept-Language"] = "zh-CN"
     main_msg["Accept-Charset"] = "utf-8"
