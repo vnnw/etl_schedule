@@ -40,7 +40,7 @@ def get_interval_day(interval, tz=None, init_day=None):
     today = today.replace(hour=0, minute=0, second=0)
     if tz == "utc":
         today = today - datetime.timedelta(hours=8)
-    return today - datetime.timedelta(days=interval)
+    return today + datetime.timedelta(days=interval)
 
 
 # def replace_query_utc(obj, init_day):
@@ -58,6 +58,8 @@ def replace_query_utc(d, init_day):
                 d[k] = get_yesterday("utc", init_day)
             if v == "${today}":
                 d[k] = get_today("utc", init_day)
+            if v == "${intervalday}":
+                d[k] = get_interval_day(-3, "utc", init_day)
             replace_query_utc(v, init_day)
     if isinstance(d, list):
         for v in d:
@@ -85,6 +87,8 @@ def replace_query(d, init_day):
                 d[k] = {"$date": int(get_yesterday(None, init_day).strftime("%s")) * 1000}
             if v == "${today}":
                 d[k] = {"$date": int(get_today(None, init_day).strftime("%s")) * 1000}
+            if v == "${intervalday}":
+                d[k] = {"$date": int(get_interval_day(-3, None, init_day).strftime("%s")) * 1000}
             replace_query(v, init_day)
     if isinstance(d, list):
         for v in d:
