@@ -59,7 +59,7 @@ def replace_query_utc(d, init_day):
             if v == "${today}":
                 d[k] = get_today("utc", init_day)
             if v == "${intervalday}":
-                d[k] = get_interval_day(-3, "utc", init_day)
+                d[k] = get_interval_day(-4, "utc", init_day)
             replace_query_utc(v, init_day)
     if isinstance(d, list):
         for v in d:
@@ -88,7 +88,7 @@ def replace_query(d, init_day):
             if v == "${today}":
                 d[k] = {"$date": int(get_today(None, init_day).strftime("%s")) * 1000}
             if v == "${intervalday}":
-                d[k] = {"$date": int(get_interval_day(-3, None, init_day).strftime("%s")) * 1000}
+                d[k] = {"$date": int(get_interval_day(-4, None, init_day).strftime("%s")) * 1000}
             replace_query(v, init_day)
     if isinstance(d, list):
         for v in d:
