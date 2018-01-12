@@ -123,10 +123,11 @@ class HiveUtil:
         if spark_home is None:
             raise Exception("SPARK_HOME 环境变量没有设置")
         command_list = list()
-        command_list.append(spark_home + "/bin/spark-sql")
+        #command_list.append(spark_home + "/bin/spark-sql")
         spark_sql_opt = self.config.get("spark.sql.opt")
         command_list.append(spark_sql_opt)
-        command_bin = " ".join(command_list) + " -f " + sql_path
+        command_list.append(sql_path)
+        command_bin = " ".join(command_list)
         print("command:" + str(command_bin))
         sys.stdout.flush()
         code = os.system(command_bin)
