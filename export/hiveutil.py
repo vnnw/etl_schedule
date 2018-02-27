@@ -7,8 +7,9 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import datetime
 import random
-import pyhs2
+import traceback
 from bin.configutil import ConfigUtil
+from connection import Connection
 
 
 class HiveUtil:
@@ -46,21 +47,9 @@ class HiveUtil:
         sql_handler.flush()
         sql_handler.close()
 
-    def get_connection(self):
-        host = self.config.get("hive.host")
-        port = self.config.get("hive.port")
-        username = self.config.get("hive.username")
-        password = self.config.get("hive.password")
-        connection = pyhs2.connect(host=host,
-                                   port=int(port),
-                                   authMechanism="PLAIN",
-                                   user=username,
-                                   password=password)
-        return connection
-
     def run_sql_count(self, sql):
         try:
-            connection = self.get_connection()
+            connection = Connection.get_hive_connection(self.config)
             cursor = connection.cursor()
             print "start run hql:" + str(sql)
             sql = sql.replace(";", "")
@@ -68,41 +57,41 @@ class HiveUtil:
             count = 0
             for i in cursor.fetch():
                 count = i[0]
-            connection.close()
             return count
         except Exception, e:
-            print(e)
-            connection.close()
+            traceback.format_exc()
             return 0
+        finally:
+            connection.close()
 
     def run_sql(self, sql):
         try:
-            connection = self.get_connection()
+            connection = Connection.get_hive_connection(self.config)
             cursor = connection.cursor()
             print "start run hql:" + str(sql)
             sql = sql.replace(";", "")
             cursor.execute(sql)
-            connection.close()
             return 0
         except Exception, e:
-            print(e)
-            connection.close()
+            traceback.format_exc()
             return -1
+        finally:
+            connection.close()
 
     def run_sql_connection(self):
         try:
-            connection = self.get_connection()
+            connection = Connection.get_hive_connection(self.config)
             cursor = connection.cursor()
             for sql in self.sqls:
                 print "start run hql:" + str(sql)
                 sql = sql.replace(";", "")
                 cursor.execute(sql)
-            connection.close()
             return 0
         except Exception, e:
-            print(e)
-            connection.close()
+            traceback.format_exc()
             return -1
+        finally:
+            connection.close()
 
     def run_sql_hive(self, sql_path):
         print("使用Hive 运行 SQL 文件")
@@ -123,7 +112,6 @@ class HiveUtil:
         if spark_home is None:
             raise Exception("SPARK_HOME 环境变量没有设置")
         command_list = list()
-        #command_list.append(spark_home + "/bin/spark-sql")
         spark_sql_opt = self.config.get("spark.sql.opt")
         command_list.append(spark_sql_opt)
         command_list.append(sql_path)
