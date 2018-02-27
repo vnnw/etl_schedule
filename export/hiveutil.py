@@ -161,6 +161,6 @@ class HiveUtil:
                 sys.stdout.flush()
             return 0  # all sql run success
         except Exception, e:
-            print(e)
+            traceback.format_exc()
             sys.stdout.flush()
             return 1
