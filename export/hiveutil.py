@@ -141,6 +141,7 @@ class HiveUtil:
         tmp_dir = self.config.get("tmp.path") + "/hqls"
         try:
             for sql in self.sqls:
+                start = datetime.datetime.now()
                 print "start run hql:" + str(sql)
                 mills = datetime.datetime.now().microsecond
                 rand = random.randint(1, 100)
@@ -166,6 +167,10 @@ class HiveUtil:
                     code = self.run_sql_hive(tmp_path)
                     if code != 0:  # hive run sql error
                         return code
+                end = datetime.datetime.now()
+                duration = (end-start).seconds
+                print "sql run spent seconds:" + str(duration)
+                sys.stdout.flush()
             return 0  # all sql run success
         except Exception, e:
             print(e)
