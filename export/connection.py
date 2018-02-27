@@ -7,7 +7,11 @@ import MySQLdb
 from odps import ODPS
 from odps import options
 
+
 class Connection:
+
+    def __init__(self):
+        pass
 
     @staticmethod
     def get_mongo_connection(config_util, mongo_db):
@@ -17,7 +21,7 @@ class Connection:
         return connection
 
     @staticmethod
-    def get_hive_connection(config_util, hive_db):
+    def get_hive_connection(config_util, hive_db=None):
         host = config_util.get("hive.host")
         port = config_util.get("hive.port")
         username = config_util.get("hive.username")
@@ -42,13 +46,13 @@ class Connection:
         return db_config
 
     @staticmethod
-    def get_mysql_connection(config_util,mysql_db):
-        mysql_config = Connection.get_mysql_config(config_util,mysql_db)
+    def get_mysql_connection(config_util, mysql_db):
+        mysql_config = Connection.get_mysql_config(config_util, mysql_db)
         host = mysql_config["host"]
         username = mysql_config["username"]
         password = mysql_config["password"]
         port = int(mysql_config["port"])
-        print "创建 MySQL 连接 host:{host}, username:{username}, password:{password}, db:{mysql_db}"\
+        print "创建 MySQL 连接 host:{host}, username:{username}, password:{password}, db:{mysql_db}" \
             .format(host=host, username=username, password=password, mysql_db=mysql_db)
         connection = MySQLdb.connect(host, username, password, mysql_db, port, use_unicode=True, charset='utf8')
         return connection
@@ -56,7 +60,7 @@ class Connection:
     @staticmethod
     def get_mysql_monitor_dict(config_util):
         db = config_util.get("mysql.db")
-        db_config = Connection.get_mysql_config(config_util,db)
+        db_config = Connection.get_mysql_config(config_util, db)
         url = "jdbc:mysql://" + db_config["host"] + ":" + str(db_config["port"]) + "/" + db
         static_dict = {
             "url": url,
@@ -67,7 +71,7 @@ class Connection:
         return static_dict
 
     @staticmethod
-    def get_odps_connection(config_util,odps_db):
+    def get_odps_connection(config_util, odps_db):
         access_id = config_util.get("odps_accessId")
         access_key = config_util.get("odps_accessKey")
         endpoint = config_util.get("odps_endpoint")
