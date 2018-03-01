@@ -312,8 +312,8 @@ if __name__ == '__main__':
             send_email(options.subject.strip(), options.content.strip(), excel_path, receivers_array)
         else:
             print("不需要发送邮件")
-            os.remove(excel_path)
-
     except Exception, e:
         print traceback.format_exc()
         sys.exit(-1)
+    finally:
+        os.remove(excel_path)
