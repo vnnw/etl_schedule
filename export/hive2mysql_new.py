@@ -40,13 +40,13 @@ def run(options, args):
 
     mysql_table_arg = options.mysql_db
     mysql_database = mysql_table_arg.split(".")[0]
-    mysql_table = mysql_table_arg.split(".")[0]
+    mysql_table = mysql_table_arg.split(".")[1]
 
-    command_list.append(add_prefix('"', hive_table_arg, '"'))
-    command_list.append(add_prefix('"', mysql_table, '"'))
-    command_list.append(add_prefix('"', options.mysql_columns, '"'))
-    command_list.append(add_prefix('"', options.hive_hql, '"'))
-    command_list.append(add_prefix('"', options.mysql_sql, '"'))
+    command_list.append(hive_table_arg)
+    command_list.append(mysql_table)
+    command_list.append(options.mysql_columns)
+    command_list.append(options.hive_hql)
+    command_list.append(options.mysql_sql)
 
     command_str = " ".join(command_list)
 
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     reload(sys)
     sys.setdefaultencoding('utf-8')
 
-    fakeArgs = ["-q", "select 1 from t_hello", "-i", "dim_beeper.t_hello", "-c", "id,name", "-s",
+    fakeArgs = ["-q", "select * from t_hello", "-i", "dim_beeper.t_hello", "-c", "id,name", "-s",
                 "select * from t_test", '-t', "db_stg.driver_quiz_score"]
 
     optParser = get_option_parser()
