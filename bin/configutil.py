@@ -10,12 +10,8 @@ import os
 
 class ConfigUtil(object):
     def __init__(self):
-        envpath = os.getenv("ETL_SCHEDULE_PATH_FAKE", "")
-        if envpath == "" or len(envpath) == 0:  # test/config.ini 可以随意设置
-            path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            config_path = path + "/config/test/config.ini"
-        else:
-            config_path = envpath + "/config/product/config.ini"
+        envpath = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        config_path = envpath + "/config/product/config.ini"
         self.config = self.load_config(config_path)
 
     def load_config(self, path):
@@ -57,3 +53,7 @@ class ConfigUtil(object):
                 return True
             else:
                 return False
+
+if __name__ == '__main__':
+    config = ConfigUtil()
+    print config.config

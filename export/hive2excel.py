@@ -112,8 +112,7 @@ def desc_comment(connection, table):
 {"table_name":{"columns:":[comment1,comment2],"data":[]}}
 '''
 
-
-def query_table(name, tables, query):
+def query_table(name, tables, querys):
     excel_path = configUtil.get("tmp.path") + "/excel/" + name + ".xlsx"
     if os.path.exists(excel_path):
         os.remove(excel_path)
