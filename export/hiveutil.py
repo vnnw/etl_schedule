@@ -145,7 +145,7 @@ class HiveUtil:
                 tmp_file.flush()
                 tmp_file.close()
                 sys.stdout.flush()
-                if self.config.getBooleanOrElse("spark.sql.run", False):
+                if self.config.get_boolean_or_else("spark.sql.run", False):
                     code = self.run_sql_spark(tmp_path)
                     if code != 0:  # spark run sql error
                         code = self.run_sql_hive(tmp_path)

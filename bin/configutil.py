@@ -36,14 +36,14 @@ class ConfigUtil(object):
             raise Exception("读取配置" + name + "失败")
         return value
 
-    def getOrElse(self, name, default):
+    def get_or_else(self, name, default):
         value = self.config.get(name)
         if value is None or len(value.strip()) == 0:
             return default
         else:
             return value
 
-    def getBooleanOrElse(self, name, default):
+    def get_boolean_or_else(self, name, default):
         value = self.config.get(name)
         if value is None or len(value.strip()) == 0:
             return default
