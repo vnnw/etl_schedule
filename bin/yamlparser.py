@@ -110,9 +110,9 @@ class YamlParser(object):
         mongo2hive = project_path + '/export/mongo2hive.py'
         hive2mysql = project_path + '/export/hive2mysql.py'
         hive2excel = project_path + '/export/hive2excel.py'
-        odps2hive = project_path + '/export/odps2hive.py'
+        odps2hive =  project_path + '/export/odps2hive.py'
         command_list = []
-        command_list += python_path
+        command_list.append(python_path)
         if command_key == 'mysql2hive':
             command_list.append(mysql2hive)
             command_list.append("--from")
